@@ -1,0 +1,30 @@
+# Automatically build the project and run any configured tests for every push and submitted pull request.
+# This can help catch issues that only occur on certain platforms or Java versions and provides a first line of defense against bad commits.
+
+name: Build Orbit UI
+on: [pull_request, push]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        # Use these Java versions
+        java: [
+          21,    # Current Java LTS & minimum supported by Minecraft
+        ]
+        # Run on these operating systems
+        os: [windows-2025-vs2026]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: ${{ matrix.java }}
+          cache: gradle
+      - name: Build
+        run: ./gradlew build
