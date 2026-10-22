@@ -56,6 +56,10 @@ subprojects {
         // See https://docs.gradle.org/current/userguide/declaring_repositories.html
         // for more information about repositories.
 
+        maven("https://maven.parchmentmc.org") {
+            name = "ParchmentMC"
+        }
+
         maven("https://maven.terraformersmc.com/") {
             name = "Terraformers"
         }
