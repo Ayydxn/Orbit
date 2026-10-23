@@ -10,4 +10,4 @@ pluginManagement {
 
 rootProject.name = "Orbit"
 
-include("common", "fabric", "forge")
+include("common", "fabric", "forge", "orbit-native")

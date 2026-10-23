@@ -37,6 +37,9 @@ allprojects {
 }
 
 subprojects {
+    if (name == "orbit-native")
+        return@subprojects;
+
     apply(plugin = "dev.architectury.loom")
     apply(plugin = "architectury-plugin")
     apply(plugin = "maven-publish")

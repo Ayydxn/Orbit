@@ -8,9 +8,9 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 @Mod(OrbitMod.MOD_ID)
 public final class OrbitModForge
 {
-    public OrbitModForge()
+    public OrbitModForge(FMLJavaModLoadingContext modLoadingContext)
     {
-        EventBuses.registerModEventBus(OrbitMod.MOD_ID, FMLJavaModLoadingContext.get().getModEventBus());
+        EventBuses.registerModEventBus(OrbitMod.MOD_ID, modLoadingContext.getModEventBus());
 
         OrbitMod.initialize();
     }
