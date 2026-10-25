@@ -78,6 +78,10 @@ subprojects {
         })
     }
 
+    tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
+        dependsOn(":orbit-native:compileNative")
+    }
+
     tasks.named<ProcessResources>("processResources") {
         val expandProps = mapOf(
             "minecraft_version" to rootProject.extra["minecraft_version"],

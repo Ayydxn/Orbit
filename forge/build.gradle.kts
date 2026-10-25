@@ -37,6 +37,7 @@ dependencies {
 
     add("common", project(mapOf("path" to ":common", "configuration" to "namedElements")))
     add("shadowBundle", project(mapOf("path" to ":common", "configuration" to "transformProductionForge")))
+    add("shadowBundle", project(":orbit-native"))
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
