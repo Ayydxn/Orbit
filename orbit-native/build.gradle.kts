@@ -37,6 +37,7 @@ val platform: String = (findProperty("platform") as String?) ?: when {
 }
 
 val cmakeBuildDirectory = layout.buildDirectory.dir("cmake-build").get().asFile
+val ffmJavaVersion = 22
 
 repositories {
     mavenCentral()
@@ -58,6 +59,15 @@ java {
 
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
+
+sourceSets {
+    create("ffm") {
+        java.srcDirs("src/ffm/java")
+
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
+    }
 }
 
 val configureCMake = tasks.register("configureCMake", Exec::class) {
@@ -110,7 +120,28 @@ val compileNative = tasks.register("compileNative", Exec::class) {
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+}
+
+tasks.named<JavaCompile>("compileJava") {
     options.release = 17
+}
+
+tasks.named<JavaCompile>(sourceSets.getByName("ffm").compileJavaTaskName) {
+    options.release = ffmJavaVersion
+
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(ffmJavaVersion)
+    }
+}
+
+tasks.jar {
+    into("META-INF/versions/$ffmJavaVersion") {
+        from(sourceSets.getByName("ffm").output)
+    }
+
+    manifest {
+        attributes("Multi-Release" to true)
+    }
 }
 
 tasks.processResources {
