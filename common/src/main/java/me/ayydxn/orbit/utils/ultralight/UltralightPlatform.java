@@ -9,19 +9,19 @@ public enum UltralightPlatform
     WINDOWS(
             "Windows",
             "win-x64",
-            "https://github.com/Ayydxn/Ultralight-SDKs/releases/download/2.0.0-beta.2/ul-sdk-2.0.0-beta.2-win-x64-free.zip",
+            "https://ultralig.ht/api/v1/sdk/download?platform=windows-x64&version=2.0.0-beta.2&format=json",
             List.of("UltralightCore.dll", "WebCore.dll", "Ultralight.dll")
     ),
 
     MAC_OS("MacOS",
             "mac-x64",
-            "https://github.com/Ayydxn/Ultralight-SDKs/releases/download/2.0.0-beta.2/ul-sdk-2.0.0-beta.2-mac-arm64-free.zip",
+            "https://ultralig.ht/api/v1/sdk/download?platform=mac-arm64&version=2.0.0-beta.2&format=json",
             List.of("libUltralightCore.dylib", "libWebCore.dylib", "libUltralight.dylib")
     ),
 
     LINUX("Linux",
             "linux-x64",
-            "https://github.com/Ayydxn/Ultralight-SDKs/releases/download/2.0.0-beta.2/ul-sdk-2.0.0-beta.2-linux-x64-free.zip",
+            "https://ultralig.ht/api/v1/sdk/download?platform=linux-x64&version=2.0.0-beta.2&format=json",
             List.of("libUltralightCore.so", "libWebCore.so", "libUltralight.so")
     );
 

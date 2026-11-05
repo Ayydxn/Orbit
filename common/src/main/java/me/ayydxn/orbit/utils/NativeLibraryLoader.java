@@ -1,5 +1,7 @@
 package me.ayydxn.orbit.utils;
 
+import me.ayydxn.orbit.OrbitMod;
+import me.ayydxn.orbit.platform.PlatformResourceLocator;
 import me.ayydxn.orbit.utils.ultralight.UltralightPlatform;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,8 +32,17 @@ public class NativeLibraryLoader
         {
             Path ultralightLibraryPath = librariesFolder.resolve(ultralightLibrary);
 
-            System.load(ultralightLibraryPath.toString());
+            try
+            {
+                System.load(ultralightLibraryPath.toString());
+            }
+            catch (UnsatisfiedLinkError exception)
+            {
+                throw new RuntimeException("Failed to load Ultralight library: " + ultralightLibrary, exception);
+            }
         }
+
+        OrbitMod.LOGGER.info("Successfully loaded Ultralight libraries!");
     }
 
     private static void loadJNIBridgeLibrary(@NotNull Path librariesPath)
@@ -41,7 +52,7 @@ public class NativeLibraryLoader
         String libraryFilename = getPlatformLibraryFilename("OrbitJNIBridge");
         String resourcePath = "/natives/" + platform + "/" + libraryFilename;
 
-        try (InputStream inputStream = NativeLibraryLoader.class.getResourceAsStream(resourcePath))
+        try (InputStream inputStream = PlatformResourceLocator.getResourceAsStream(resourcePath))
         {
             if (inputStream != null)
             {
@@ -51,6 +62,8 @@ public class NativeLibraryLoader
                     Files.copy(inputStream, targetDestination, StandardCopyOption.REPLACE_EXISTING);
 
                 System.load(targetDestination.toAbsolutePath().toString());
+
+                OrbitMod.LOGGER.info("Successfully loaded JNI bridge library!");
 
                 return;
             }
@@ -69,6 +82,8 @@ public class NativeLibraryLoader
         {
             throw new RuntimeException("Orbit's JNI bridge library was not found on classpath or library path.", exception);
         }
+
+        OrbitMod.LOGGER.info("Successfully loaded JNI bridge library!");
     }
 
     private static String getCurrentPlatformString()

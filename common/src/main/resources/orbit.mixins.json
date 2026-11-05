@@ -6,6 +6,7 @@
   "client": [
   ],
   "mixins": [
+    "external.SevenZExtractorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -34,6 +34,9 @@ dependencies {
     /* -- Mod Dependencies -- */
     modImplementation("com.terraformersmc:modmenu:${rootProject.extra["modmenu_version"]}")
 
+    /* -- Utilities -- */
+    include("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
+
     add("common", project(mapOf("path" to ":common", "configuration" to "namedElements")))
     add("shadowBundle", project(mapOf("path" to ":common", "configuration" to "transformProductionFabric")))
     add("shadowBundle", project(":orbit-native"))

@@ -8,4 +8,7 @@ dependencies {
     modImplementation("dev.architectury:architectury:${rootProject.extra["architectury_api_version"]}")
 
     api(project(":orbit-native"))
+
+    /* -- Utilities -- */
+    api("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
 }

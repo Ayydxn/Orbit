@@ -78,7 +78,7 @@ subprojects {
         })
     }
 
-    tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
+    tasks.matching { it.name == "runClient" || it.name == "runServer" || it.name.startsWith("dev.architectury.transformer.TransformerRuntime") }.configureEach {
         dependsOn(":orbit-native:compileNative")
     }
 

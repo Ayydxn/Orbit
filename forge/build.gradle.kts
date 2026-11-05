@@ -35,6 +35,9 @@ dependencies {
     "forge"("net.minecraftforge:forge:${rootProject.extra["forge_version"]}")
     modImplementation("dev.architectury:architectury-forge:${rootProject.extra["architectury_api_version"]}")
 
+    /* -- Utilities -- */
+    include("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
+
     add("common", project(mapOf("path" to ":common", "configuration" to "namedElements")))
     add("shadowBundle", project(mapOf("path" to ":common", "configuration" to "transformProductionForge")))
     add("shadowBundle", project(":orbit-native"))
