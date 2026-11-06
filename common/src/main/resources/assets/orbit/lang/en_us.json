@@ -1,0 +1,10 @@
+{
+  "orbit.texts.native_library_integrity_check_failed.title": "Orbit - Native Library Integrity Check Failed",
+  "orbit.texts.native_library_integrity_check_failed.jni_failed": "Orbit couldn't verify that its JNI bridge native library was genuine, so it was not loaded.",
+  "orbit.texts.native_library_integrity_check_failed.ultralight_failed": "Orbit couldn't verify that all of the required Ultralight native libraries were genuine, so they weren't not loaded.",
+  "orbit.texts.native_library_integrity_check_failed.reason": "This can happen if the libraries were modified or corrupted in some way, or if an internet connection was not available to verify them.",
+  "orbit.texts.native_library_integrity_check_failed.fix": "Check your internet connection and relaunch the game. If it keeps happening, delete Orbit and the contents of its folder then download and install a fresh copy of the mod.",
+  "orbit.texts.native_library_integrity_check_failed.advancedUsers": "If you know and understand the modifications that were made to the libraries, you can disable the integrity check by adding the following property to your JVM arguments: -Dorbit.disableIntegrityCheck=true",
+  "orbit.texts.native_library_integrity_check_failed.report": "If none of the above works, please open a report on Orbit's issue tracker on GitHub.",
+  "orbit.texts.native_library_integrity_check_failed.close_game": "Close Game"
+}

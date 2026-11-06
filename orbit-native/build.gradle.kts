@@ -1,5 +1,6 @@
 ﻿import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
+import java.security.MessageDigest
 import java.util.Properties
 
 plugins {
@@ -110,10 +111,18 @@ val compileNative = tasks.register("compileNative", Exec::class) {
 
         val produced = file("$cmakeBuildDirectory/Release/$libName")
         if (produced.exists()) {
+            val nativesDirectory = layout.buildDirectory.dir("resources/main/natives/$platform").get().asFile
+
             copy {
                 from(produced)
-                into(layout.buildDirectory.dir("resources/main/natives/$platform"))
+                into(nativesDirectory)
             }
+
+            val checksum = MessageDigest.getInstance("SHA-256")
+                .digest(produced.readBytes())
+                .joinToString("") { "%02x".format(it) }
+
+            File(nativesDirectory, "$libName.sha256").writeText(checksum)
         }
     }
 }
