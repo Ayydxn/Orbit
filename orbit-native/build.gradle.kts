@@ -19,7 +19,7 @@ val localProperties = Properties().apply {
 val ultralightSdkLocation: String = (localProperties.getProperty("ultralight_sdk_location") ?: findProperty("ultralight_sdk_location") as String? ?: "").also {
     if (it.isBlank()) {
         logger.warn(
-            "\n[ultralight-jni] WARNING: 'ultralight_sdk_location' is not set.\n" +
+            "\n[orbit-native] WARNING: 'ultralight_sdk_location' is not set.\n" +
                     "  Native compilation will be skipped.\n" +
                     "  Set it in local.properties or pass -Pultralight_sdk_location=<path>.\n"
         )
@@ -108,21 +108,29 @@ val compileNative = tasks.register("compileNative", Exec::class) {
             else -> "libOrbitJNIBridge.so"
         }
 
-        val produced = file("$cmakeBuildDirectory/Release/$libName")
-        if (produced.exists()) {
-            val nativesDirectory = layout.buildDirectory.dir("resources/main/natives/$platform").get().asFile
+        val produced = listOf(
+            File(cmakeBuildDirectory, "Release/$libName"),
+            File(cmakeBuildDirectory, libName)
+        ).firstOrNull { it.exists() }
+            ?: throw GradleException("CMake finished, but $libName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
+        val nativesDirectory = layout.buildDirectory.dir("resources/main/natives/$platform").get().asFile
 
-            copy {
-                from(produced)
-                into(nativesDirectory)
-            }
-
-            val checksum = MessageDigest.getInstance("SHA-256")
-                .digest(produced.readBytes())
-                .joinToString("") { "%02x".format(it) }
-
-            File(nativesDirectory, "$libName.sha256").writeText(checksum)
+        copy {
+            from(produced)
+            into(nativesDirectory)
         }
+
+        val checksumDirectory = layout.buildDirectory.dir("native-checksums/$platform").get().asFile
+        checksumDirectory.mkdirs()
+
+        val checksum = MessageDigest.getInstance("SHA-256")
+            .digest(produced.readBytes())
+            .joinToString("") { "%02x".format(it) }
+
+        val checksumFile = File(checksumDirectory, "$libName.sha256")
+        checksumFile.writeText(checksum)
+
+        logger.quiet("[orbit-native] Copied $libName to ${nativesDirectory.absolutePath} and wrote checksum to ${checksumFile.absolutePath}")
     }
 }
 

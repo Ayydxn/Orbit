@@ -6,10 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ── Compiler hardening & optimisation flags ──────────────────────────────────
 if(MSVC)
-    add_compile_options(/O2 /GL /arch:AVX2 /W4)
+    add_compile_options(/O2 /GL /W4)
     add_link_options(/LTCG)
 else()
-    add_compile_options(-O3 -march=native -flto -fvisibility=hidden -Wall)
+    add_compile_options(-O3 -flto -Wall)
     add_link_options(-flto)
 endif()
 
