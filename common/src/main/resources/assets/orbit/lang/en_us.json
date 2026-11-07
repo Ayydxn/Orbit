@@ -1,10 +1,31 @@
 {
-  "orbit.texts.native_library_integrity_check_failed.title": "Orbit - Native Library Integrity Check Failed",
-  "orbit.texts.native_library_integrity_check_failed.jni_failed": "Orbit couldn't verify that its JNI bridge native library was genuine, so it was not loaded.",
-  "orbit.texts.native_library_integrity_check_failed.ultralight_failed": "Orbit couldn't verify that all of the required Ultralight native libraries were genuine, so they weren't loaded.",
-  "orbit.texts.native_library_integrity_check_failed.reason": "This can happen if the libraries were modified or corrupted in some way, or if an internet connection was not available to verify them.",
-  "orbit.texts.native_library_integrity_check_failed.fix": "Check your internet connection and relaunch the game. If it keeps happening, delete Orbit and the contents of its folder then download and install a fresh copy of the mod.",
-  "orbit.texts.native_library_integrity_check_failed.advanced_users": "If you know and understand the modifications that were made to the libraries, you can disable the integrity check by adding the following property to your JVM arguments: -Dorbit.disableIntegrityCheck=true",
-  "orbit.texts.native_library_integrity_check_failed.report": "If none of the above works, please open a report on Orbit's issue tracker on GitHub.",
-  "orbit.texts.native_library_integrity_check_failed.close_game": "Close Game"
+  "orbit.texts.native_load_failed.title": "Orbit - Failed to Load Native Libraries",
+  "orbit.texts.native_load_failed.open_folder": "Open Orbit Folder",
+  "orbit.texts.native_load_failed.close_game": "Close Game",
+  "orbit.texts.native_load_failed.advanced_users": "If you understand the risks, you can skip the integrity check by adding the following property to your JVM arguments: -Dorbit.disableIntegrityCheck=true",
+  "orbit.texts.native_load_failed.report": "If none of the above works, please open a report on Orbit's issue tracker on GitHub.",
+
+  "orbit.texts.native_load_failed.unsupported_platform.description": "Orbit doesn't support this platform. It currently runs on 64-bit Windows, 64-bit Linux and Apple Silicon Macs.",
+  "orbit.texts.native_load_failed.unsupported_platform.fix": "Orbit can't run on this system, so you'll need to remove it from your mods folder.",
+
+  "orbit.texts.native_load_failed.ultralight_download_failed.description": "Orbit couldn't download the Ultralight libraries it needs.",
+  "orbit.texts.native_load_failed.ultralight_download_failed.fix": "Check your internet connection and relaunch the game. If you're behind a firewall or proxy, make sure the game is allowed to access the internet.",
+
+  "orbit.texts.native_load_failed.ultralight_libraries_inauthentic.description": "Orbit couldn't verify that all of the required Ultralight native libraries were genuine, so they weren't loaded. This can happen if the libraries were modified or corrupted in some way.",
+  "orbit.texts.native_load_failed.ultralight_libraries_inauthentic.fix": "Relaunch the game. If it keeps happening, delete Orbit and the contents of its folder, then download and install a fresh copy of the mod from an official source.",
+
+  "orbit.texts.native_load_failed.jni_bridge_missing.description": "Orbit's JNI bridge native library is missing from this copy of the mod.",
+  "orbit.texts.native_load_failed.jni_bridge_missing.fix": "Download and install a fresh copy of the mod from an official source.",
+
+  "orbit.texts.native_load_failed.jni_bridge_inauthentic.description": "Orbit couldn't verify that its JNI bridge native library was genuine, so it was not loaded. This can happen if the library was modified or corrupted in some way.",
+  "orbit.texts.native_load_failed.jni_bridge_inauthentic.fix": "Relaunch the game. If it keeps happening, delete Orbit and the contents of its folder, then download and install a fresh copy of the mod from an official source.",
+
+  "orbit.texts.native_load_failed.integrity_check_unavailable.description": "Orbit couldn't reach GitHub to verify that its native libraries were genuine, so they weren't loaded.",
+  "orbit.texts.native_load_failed.integrity_check_unavailable.fix": "Check your internet connection and relaunch the game.",
+
+  "orbit.texts.native_load_failed.native_load_failed.description": "A native library required by Orbit couldn't be loaded.",
+  "orbit.texts.native_load_failed.native_load_failed.fix": "Relaunch the game. If it keeps happening, check the game log for details.",
+
+  "orbit.texts.native_load_failed.unknown.description": "Something went wrong while loading Orbit's native libraries.",
+  "orbit.texts.native_load_failed.unknown.fix": "Relaunch the game. If it keeps happening, check the game log for details."
 }

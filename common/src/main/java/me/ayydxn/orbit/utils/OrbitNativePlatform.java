@@ -79,7 +79,7 @@ public enum OrbitNativePlatform
 		return this.id;
 	}
 
-	public String getJNIBridgeLibraryFileName()
+	public String getJNIBridgeLibraryFilename()
 	{
 		return this.jniBridgeLibraryFileName;
 	}

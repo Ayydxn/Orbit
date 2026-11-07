@@ -23,16 +23,6 @@ public class OrbitMod
 
     private OrbitMod()
     {
-        try
-        {
-            if (!this.areUltralightLibrariesPresent())
-                UltralightLibraryDownloader.downloadAndExtract(OrbitConstants.ORBIT_DIRECTORY);
-        }
-        catch (IOException exception)
-        {
-            LOGGER.error("Failed to download the Ultralight libraries", exception);
-        }
-
         NativeLibraryLoader.load(OrbitConstants.ORBIT_DIRECTORY);
     }
 

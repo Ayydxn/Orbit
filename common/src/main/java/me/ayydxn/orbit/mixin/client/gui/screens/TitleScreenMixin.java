@@ -1,8 +1,8 @@
 package me.ayydxn.orbit.mixin.client.gui.screens;
 
-import dev.architectury.platform.Platform;
-import me.ayydxn.orbit.gui.screens.FailedIntegrityCheckScreen;
+import me.ayydxn.orbit.gui.screens.NativeLibraryLoadFailureScreen;
 import me.ayydxn.orbit.utils.NativeLibraryLoader;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
@@ -20,13 +20,9 @@ public class TitleScreenMixin extends Screen
     }
 
     @Inject(method = "init", at = @At("TAIL"))
-    public void displayFailedIntegrityCheckScreenIfNeeded(CallbackInfo ci)
+    public void displayFailedIntegrityCheckScreenIfNeeded(CallbackInfo callbackInfo)
     {
-        if (!Platform.isDevelopmentEnvironment() && !NativeLibraryLoader.getLibraryIntegrityStatus().isValid())
-        {
-            // (Ayydxn) Obviously, the Minecraft instance is never going to be null. I just want IntelliJ to shut up about not doing a null check here.
-            if (this.minecraft != null)
-                this.minecraft.setScreen(new FailedIntegrityCheckScreen(NativeLibraryLoader.getLibraryIntegrityStatus()));
-        }
+		if (NativeLibraryLoader.getLoadStatus().isFailed())
+			Minecraft.getInstance().setScreen(new NativeLibraryLoadFailureScreen(NativeLibraryLoader.getLoadStatus()));
     }
 }
