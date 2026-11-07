@@ -1,7 +1,5 @@
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import java.security.MessageDigest
-import java.util.Properties
+import java.util.*
 
 plugins {
     id("java")
@@ -19,25 +17,42 @@ val localProperties = Properties().apply {
 val ultralightSdkLocation: String = (localProperties.getProperty("ultralight_sdk_location") ?: findProperty("ultralight_sdk_location") as String? ?: "").also {
     if (it.isBlank()) {
         logger.warn(
-            "\n[orbit-native] WARNING: 'ultralight_sdk_location' is not set.\n" +
-                    "  Native compilation will be skipped.\n" +
+            "\n[orbit-native] WARNING: 'ultralight_sdk_location' is not set. JNI bridge library compilation will be skipped.\n" +
                     "  Set it in local.properties or pass -Pultralight_sdk_location=<path>.\n"
         )
     }
 }
 
-val operatingSystem: DefaultOperatingSystem = DefaultNativePlatform.getCurrentOperatingSystem()
-val osArchitecture = DefaultNativePlatform.getCurrentArchitecture().name
+val osName: String = System.getProperty("os.name").lowercase()
+val osArchitecture: String = System.getProperty("os.arch").lowercase()
+
+val isWindows = osName.startsWith("windows")
+val isMacOS = osName.contains("mac")
+val isLinux = osName.contains("linux")
 
 val platform: String = (findProperty("platform") as String?) ?: when {
-    operatingSystem.isWindows -> "windows-x64"
-    operatingSystem.isMacOsX ->"macos-arm64"
-    operatingSystem.isLinux -> "linux-x64"
-    else -> throw GradleException("Unsupported host operating system: ${operatingSystem.name} ($osArchitecture)")
+    isWindows -> "windows-x64"
+    isMacOS -> "macos-arm64"
+    isLinux -> "linux-x64"
+    else -> throw GradleException("Unsupported host operating system: $osName ($osArchitecture)")
 }
 
+val nativeLibraryName = when (platform) {
+    "windows-x64" -> "OrbitJNIBridge.dll"
+    "macos-arm64" -> "libOrbitJNIBridge.dylib"
+    else -> "libOrbitJNIBridge.so"
+}
+
+val nativeChecksumDirectory = layout.buildDirectory.dir("native-checksums/$platform").get().asFile
 val cmakeBuildDirectory = layout.buildDirectory.dir("cmake-build").get().asFile
+
 val ffmJavaVersion = 22
+
+// Multi-config generators like Visual Studio put the library in a per-configuration folder, single-config generators such as Makefiles don't.
+fun findBuiltNativeLibrary(): File? = listOf(
+    File(cmakeBuildDirectory, "Release/$nativeLibraryName"),
+    File(cmakeBuildDirectory, nativeLibraryName)
+).firstOrNull { it.exists() }
 
 repositories {
     mavenCentral()
@@ -85,7 +100,7 @@ val configureCMake = tasks.register("configureCMake", Exec::class) {
         file("src/main/native").absolutePath,
         "-DULTRALIGHT_SDK=${ultralightSdkLocation}",
         "-DCMAKE_BUILD_TYPE=Release",
-        "-G", if (DefaultNativePlatform.getCurrentOperatingSystem().isWindows) "Visual Studio 18 2026" else "Unix Makefiles"
+        "-G", if (isWindows) "Visual Studio 18 2026" else "Unix Makefiles"
     )
 }
 
@@ -100,38 +115,42 @@ val compileNative = tasks.register("compileNative", Exec::class) {
     workingDir = cmakeBuildDirectory
     commandLine("cmake", "--build", ".", "--config", "Release", "--parallel")
 
-    // Copy the produced shared lib into resources so it's on the classpath
     doLast {
-        val libName = when (platform) {
-            "windows-x64" -> "OrbitJNIBridge.dll"
-            "macos-arm64" -> "libOrbitJNIBridge.dylib"
-            else -> "libOrbitJNIBridge.so"
-        }
-
-        val produced = listOf(
-            File(cmakeBuildDirectory, "Release/$libName"),
-            File(cmakeBuildDirectory, libName)
-        ).firstOrNull { it.exists() }
-            ?: throw GradleException("CMake finished, but $libName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
-        val nativesDirectory = layout.buildDirectory.dir("resources/main/natives/$platform").get().asFile
-
-        copy {
-            from(produced)
-            into(nativesDirectory)
-        }
-
-        val checksumDirectory = layout.buildDirectory.dir("native-checksums/$platform").get().asFile
-        checksumDirectory.mkdirs()
+        val produced = findBuiltNativeLibrary()
+            ?: throw GradleException("CMake finished, but $nativeLibraryName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
 
         val checksum = MessageDigest.getInstance("SHA-256")
             .digest(produced.readBytes())
             .joinToString("") { "%02x".format(it) }
 
-        val checksumFile = File(checksumDirectory, "$libName.sha256")
+        // Written outside the bundled resources so it never ships inside the jar.
+        nativeChecksumDirectory.mkdirs()
+
+        val checksumFile = File(nativeChecksumDirectory, "$nativeLibraryName.sha256")
         checksumFile.writeText(checksum)
 
-        logger.quiet("[orbit-native] Copied $libName to ${nativesDirectory.absolutePath} and wrote checksum to ${checksumFile.absolutePath}")
+        logger.quiet("[orbit-native] Wrote native library checksum to ${checksumFile.absolutePath}")
     }
+}
+
+val stageJNIBridgeLibrary = tasks.register<Sync>("stageJNIBridgeLibrary") {
+    group = "native"
+    description = "Stages the compiled JNI bridge library so it's bundled into the jar's resources"
+
+    dependsOn(compileNative)
+
+    onlyIf { ultralightSdkLocation.isNotBlank() }
+
+    from(cmakeBuildDirectory) {
+        include("Release/$nativeLibraryName", nativeLibraryName)
+        eachFile { relativePath = RelativePath(true, "natives", platform, name) }
+
+        includeEmptyDirs = false
+    }
+
+    into(layout.buildDirectory.dir("generated/orbit-natives"))
+
+    logger.quiet("[orbit-native] Staged native library to ${layout.buildDirectory.dir("generated/orbit-natives").get().asFile.absolutePath}")
 }
 
 tasks.withType<JavaCompile> {
@@ -147,6 +166,7 @@ tasks.named<JavaCompile>(sourceSets.getByName("ffm").compileJavaTaskName) {
 
     javaCompiler = javaToolchains.compilerFor {
         languageVersion = JavaLanguageVersion.of(ffmJavaVersion)
+        vendor = JvmVendorSpec.AZUL
     }
 }
 
@@ -161,7 +181,7 @@ tasks.jar {
 }
 
 tasks.processResources {
-    dependsOn(compileNative)
+    from(stageJNIBridgeLibrary)
 }
 
 tasks.test {

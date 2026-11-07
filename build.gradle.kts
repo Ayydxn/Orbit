@@ -24,6 +24,11 @@ allprojects {
     version = "${rootProject.extra["mod_version"]}-mc${rootProject.extra["minecraft_version"]}"
 
     extensions.configure<JavaPluginExtension> {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+            vendor.set(JvmVendorSpec.AZUL)
+        }
+
         withSourcesJar()
 
         sourceCompatibility = JavaVersion.VERSION_17
@@ -70,16 +75,12 @@ subprojects {
 
     dependencies {
         "minecraft"("net.minecraft:minecraft:${rootProject.extra["minecraft_version"]}")
-        
+
         @Suppress("UnstableApiUsage")
         "mappings"(loom.layered {
             officialMojangMappings()
             parchment("org.parchmentmc.data:parchment-${rootProject.property("minecraft_version")}:${rootProject.property("parchment_version")}@zip")
         })
-    }
-
-    tasks.matching { it.name == "runClient" || it.name == "runServer" || it.name.startsWith("dev.architectury.transformer.TransformerRuntime") }.configureEach {
-        dependsOn(":orbit-native:compileNative")
     }
 
     tasks.named<ProcessResources>("processResources") {
