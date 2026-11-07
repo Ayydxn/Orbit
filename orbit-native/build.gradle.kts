@@ -1,11 +1,10 @@
-﻿import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import java.security.MessageDigest
 import java.util.Properties
 
 plugins {
     id("java")
-    id("c")
 }
 
 version = "${rootProject.extra["mod_version"]}"

@@ -22,11 +22,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
-public class UltralightLibraryDownloader
+public final class UltralightLibraryDownloader
 {
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
+
+	private UltralightLibraryDownloader()
+	{
+	}
 
     public static void downloadAndExtract(Path targetDirectory) throws IOException
     {

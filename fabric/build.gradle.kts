@@ -32,7 +32,7 @@ dependencies {
     modImplementation("dev.architectury:architectury-fabric:${rootProject.extra["architectury_api_version"]}")
 
     /* -- Mod Dependencies -- */
-    modImplementation("com.terraformersmc:modmenu:${rootProject.extra["modmenu_version"]}")
+    modRuntimeOnly("com.terraformersmc:modmenu:${rootProject.extra["modmenu_version"]}")
 
     /* -- Utilities -- */
     include("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")

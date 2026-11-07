@@ -4,7 +4,11 @@ import dev.architectury.platform.Platform;
 
 import java.nio.file.Path;
 
-public class OrbitConstants
+public final class OrbitConstants
 {
+	private OrbitConstants()
+	{
+	}
+
     public static final Path ORBIT_DIRECTORY = Platform.getGameFolder().resolve("orbit");
 }

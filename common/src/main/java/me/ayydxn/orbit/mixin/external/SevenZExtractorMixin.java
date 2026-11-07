@@ -20,8 +20,7 @@ public class SevenZExtractorMixin
     @Inject(method = "<init>([BI)V", at = @At("TAIL"))
     public void increaseMemoryLimit(byte[] password, int memoryLimitKiB, CallbackInfo callbackInfo)
     {
-        // Forcefully bump the memory limit to 256KB so that we can extract the Ultralight binaries without the library throwing a SevenZMemoryLimitException
-        // while still keeping safe against things like ZIP bombs.
+        // Forcefully bump the memory limit to 256MB so that we can extract the Ultralight binaries without the library throwing a SevenZMemoryLimitException.
         this.memoryLimitKiB = 262144;
     }
 }

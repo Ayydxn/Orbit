@@ -20,7 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.HexFormat;
 
-public class NativeLibraryLoader
+public final class NativeLibraryLoader
 {
     private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL) // GitHub redirects release assets to its CDN.
@@ -31,6 +31,10 @@ public class NativeLibraryLoader
 
     private static volatile LibraryIntegrityStatus libraryIntegrityStatus = new LibraryIntegrityStatus(false, LibraryIntegrityStatus.FailureReason.UNKNOWN);
     private static volatile boolean areLibrariesLoaded = false;
+
+	private NativeLibraryLoader()
+	{
+	}
 
     public static synchronized void load(@NotNull Path librariesPath)
     {

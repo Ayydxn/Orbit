@@ -68,7 +68,7 @@ public class FailedIntegrityCheckScreen extends Screen
                 .append("\n\n")
                 .append(Component.translatable("orbit.texts.native_library_integrity_check_failed.fix"))
                 .append("\n\n")
-                .append(Component.translatable("orbit.texts.native_library_integrity_check_failed.advancedUsers"))
+                .append(Component.translatable("orbit.texts.native_library_integrity_check_failed.advanced_users"))
                 .append("\n\n")
                 .append(Component.translatable("orbit.texts.native_library_integrity_check_failed.report"));
         MultiLineLabel bodyText = MultiLineLabel.create(this.font, bodyTextComponent, this.width - 50);
