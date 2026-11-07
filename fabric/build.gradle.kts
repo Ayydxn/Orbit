@@ -35,6 +35,7 @@ dependencies {
     modRuntimeOnly("com.terraformersmc:modmenu:${rootProject.extra["modmenu_version"]}")
 
     /* -- Utilities -- */
+    runtimeOnly("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
     include("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
 
     add("common", project(mapOf("path" to ":common", "configuration" to "namedElements")))

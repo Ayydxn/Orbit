@@ -13,7 +13,7 @@
   },
   "license": "${license}",
   "icon": "assets/${mod_id}/${icon_path}",
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
     "client": [
       "me.ayydxn.orbit.fabric.OrbitClientModFabric"

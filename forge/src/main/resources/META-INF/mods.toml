@@ -17,18 +17,18 @@ modId = "minecraft"
 mandatory = true
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
-side = "BOTH"
+side = "CLIENT"
 
 [[dependencies.${mod_id}]]
 modId = "forge"
 mandatory = true
 versionRange = "${forge_version_range}"
 ordering = "NONE"
-side = "BOTH"
+side = "CLIENT"
 
 [[dependencies.${mod_id}]]
 modId = "architectury"
 mandatory = true
 versionRange = "${architectury_version_range}"
 ordering = "AFTER"
-side = "BOTH"
+side = "CLIENT"

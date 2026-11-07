@@ -36,6 +36,7 @@ dependencies {
     modImplementation("dev.architectury:architectury-forge:${rootProject.extra["architectury_api_version"]}")
 
     /* -- Utilities -- */
+    forgeRuntimeLibrary("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
     include("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
 
     add("common", project(mapOf("path" to ":common", "configuration" to "namedElements")))

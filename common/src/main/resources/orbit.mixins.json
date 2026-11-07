@@ -7,7 +7,6 @@
     "client.gui.screens.TitleScreenMixin"
   ],
   "mixins": [
-    "external.SevenZExtractorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

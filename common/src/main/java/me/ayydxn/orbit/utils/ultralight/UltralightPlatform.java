@@ -1,6 +1,8 @@
 package me.ayydxn.orbit.utils.ultralight;
 
+import me.ayydxn.orbit.utils.OrbitConstants;
 import net.minecraft.Util;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -9,19 +11,19 @@ public enum UltralightPlatform
     WINDOWS(
             "Windows",
             "win-x64",
-            "https://ultralig.ht/api/v1/sdk/download?platform=windows-x64&version=2.0.0-beta.2&format=json",
+            String.format("https://ultralig.ht/api/v1/sdk/download?platform=windows-x64&version=%s&format=json", OrbitConstants.ULTRALIGHT_VERSION),
             List.of("UltralightCore.dll", "WebCore.dll", "Ultralight.dll")
     ),
 
     MAC_OS("MacOS",
             "mac-x64",
-            "https://ultralig.ht/api/v1/sdk/download?platform=mac-arm64&version=2.0.0-beta.2&format=json",
+            String.format("https://ultralig.ht/api/v1/sdk/download?platform=mac-arm64&version=%s&format=json", OrbitConstants.ULTRALIGHT_VERSION),
             List.of("libUltralightCore.dylib", "libWebCore.dylib", "libUltralight.dylib")
     ),
 
     LINUX("Linux",
             "linux-x64",
-            "https://ultralig.ht/api/v1/sdk/download?platform=linux-x64&version=2.0.0-beta.2&format=json",
+            String.format("https://ultralig.ht/api/v1/sdk/download?platform=linux-x64&version=%s&format=json", OrbitConstants.ULTRALIGHT_VERSION),
             List.of("libUltralightCore.so", "libWebCore.so", "libUltralight.so")
     );
 
@@ -64,6 +66,7 @@ public enum UltralightPlatform
         return this.sdkDownloadURL;
     }
 
+	@NotNull
     public List<String> getLibraryFiles()
     {
         return this.libraryFiles;

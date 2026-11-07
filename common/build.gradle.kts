@@ -10,5 +10,5 @@ dependencies {
     api(project(":orbit-native"))
 
     /* -- Utilities -- */
-    api("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
+    implementation("io.github.realburst:arcana:${rootProject.extra["arcana_version"]}")
 }

@@ -1,14 +1,10 @@
 package me.ayydxn.orbit.utils.ultralight;
 
-import be.stef.arcana.Arcana;
-import be.stef.arcana.ArcanaEntry;
-import be.stef.arcana.ArchiveItem;
-import be.stef.arcana.ArchiveReader;
+import be.stef.arcana.formats.sevenz.SevenZEntry;
+import be.stef.arcana.formats.sevenz.SevenZFile;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.ayydxn.orbit.OrbitMod;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +24,8 @@ public final class UltralightLibraryDownloader
             .followRedirects(HttpClient.Redirect.NORMAL)
             .build();
 
+	private static final int SEVENZ_MEMORY_LIMIT_KIB = 140176; // Around 143MB
+
 	private UltralightLibraryDownloader()
 	{
 	}
@@ -42,7 +40,7 @@ public final class UltralightLibraryDownloader
 
         try
         {
-            UltralightLibraryDownloader.downloadFile(ultralightPlatform.getSDKDownloadURL(), tempSDKFile);
+            UltralightLibraryDownloader.downloadSDK(ultralightPlatform.getSDKDownloadURL(), tempSDKFile);
             UltralightLibraryDownloader.extractBinaries(tempSDKFile, targetDirectory, ultralightPlatform);
         }
         catch (Exception exception)
@@ -53,11 +51,11 @@ public final class UltralightLibraryDownloader
         }
         finally
         {
-            FileUtils.deleteQuietly(tempSDKFile.toFile());
+			Files.deleteIfExists(tempSDKFile);
         }
     }
 
-    private static void downloadFile(String urlString, Path destination) throws IOException
+    private static void downloadSDK(String urlString, Path destination) throws IOException
     {
         HttpRequest jsonHTTPRequest = HttpRequest.newBuilder()
                 .uri(URI.create(urlString))
@@ -107,28 +105,28 @@ public final class UltralightLibraryDownloader
     //  This is a temporary workaround until we update to a newer version of the game which (hopefully) uses a newer version of Commons Compress with that support.
     private static void extractBinaries(Path ultralightSDKPath, Path targetDirectory, UltralightPlatform platform) throws IOException
     {
-        try (ArchiveReader archiveReader = Arcana.read(ultralightSDKPath))
-        {
-            for (ArchiveItem archiveItem : archiveReader)
-            {
-                ArcanaEntry currentEntry = archiveItem.getEntry();
-                if (currentEntry.isDirectory())
-                    continue;
+		try (SevenZFile ultralightSDKArchive = SevenZFile.builder()
+			.setPath(ultralightSDKPath)
+			.setMaxMemoryLimitKiB(SEVENZ_MEMORY_LIMIT_KIB)
+			.get())
+		{
+			SevenZEntry currentEntry;
+			while ((currentEntry = ultralightSDKArchive.getNextEntry()) != null)
+			{
+				if (currentEntry.isDirectory() || currentEntry.getName() == null)
+					continue;
 
-                String filename = StringUtils.substringAfterLast(currentEntry.getName(), "/");
-                if (filename.isEmpty())
-                    filename = StringUtils.substringAfterLast(currentEntry.getName(), "\\");
+				String currentEntryName = currentEntry.getName().replace('\\', '/');
+				String filename = currentEntryName.substring(currentEntryName.lastIndexOf('/') + 1);
 
-                if (platform.getLibraryFiles().contains(filename))
-                {
-                    Path outputPath = targetDirectory.resolve(filename);
+				if (!platform.getLibraryFiles().contains(filename))
+					continue;
 
-                    try (InputStream inputStream = archiveItem.openStream())
-                    {
-                        Files.copy(inputStream, outputPath, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                }
-            }
-        }
+				try (InputStream inputStream = ultralightSDKArchive.getInputStream(currentEntry))
+				{
+					Files.copy(inputStream, targetDirectory.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+				}
+			}
+		}
     }
 }

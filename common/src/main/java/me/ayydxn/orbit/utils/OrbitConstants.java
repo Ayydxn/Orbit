@@ -11,4 +11,6 @@ public final class OrbitConstants
 	}
 
     public static final Path ORBIT_DIRECTORY = Platform.getGameFolder().resolve("orbit");
+
+	public static final String ULTRALIGHT_VERSION = "2.0.0-beta.2";
 }
