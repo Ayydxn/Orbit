@@ -30,11 +30,15 @@ val isWindows = osName.startsWith("windows")
 val isMacOS = osName.contains("mac")
 val isLinux = osName.contains("linux")
 
+val isX64 = osArchitecture == "amd64" || osArchitecture == "x86_64"
+val isArm64 = osArchitecture == "aarch64" || osArchitecture == "arm64"
+
+// These platform ids and library file names must stay in sync with NativePlatform.java in common.
 val platform: String = (findProperty("platform") as String?) ?: when {
-    isWindows -> "windows-x64"
-    isMacOS -> "macos-arm64"
-    isLinux -> "linux-x64"
-    else -> throw GradleException("Unsupported host operating system: $osName ($osArchitecture)")
+    isWindows && isX64 -> "windows-x64"
+    isMacOS && isArm64 -> "macos-arm64"
+    isLinux && isX64 -> "linux-x64"
+    else -> throw GradleException("Unsupported host platform: $osName ($osArchitecture). Supported platforms are windows-x64, macos-arm64 and linux-x64. Use  -Pplatform=<id> to override.")
 }
 
 val nativeLibraryName = when (platform) {

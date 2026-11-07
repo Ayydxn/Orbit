@@ -5,6 +5,7 @@ import be.stef.arcana.formats.sevenz.SevenZFile;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import me.ayydxn.orbit.OrbitMod;
+import me.ayydxn.orbit.utils.OrbitNativePlatform;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,16 +33,16 @@ public final class UltralightLibraryDownloader
 
     public static void downloadAndExtract(Path targetDirectory) throws IOException
     {
-        UltralightPlatform ultralightPlatform = UltralightPlatform.getCurrentPlatform();
-        OrbitMod.LOGGER.info("Downloading and extracting Ultralight binaries for {}...", ultralightPlatform.getName());
+        OrbitNativePlatform nativePlatform = OrbitNativePlatform.getCurrent();
+        OrbitMod.LOGGER.info("Downloading and extracting Ultralight binaries for {}...", nativePlatform.getName());
 
         Files.createDirectories(targetDirectory);
-        Path tempSDKFile = Files.createTempFile("ultralight-sdk-" + ultralightPlatform.getShortName() + "-", ".7z");
+        Path tempSDKFile = Files.createTempFile("ultralight-sdk-" + nativePlatform.getID() + "-", ".7z");
 
         try
         {
-            UltralightLibraryDownloader.downloadSDK(ultralightPlatform.getSDKDownloadURL(), tempSDKFile);
-            UltralightLibraryDownloader.extractBinaries(tempSDKFile, targetDirectory, ultralightPlatform);
+            UltralightLibraryDownloader.downloadSDK(nativePlatform.getSDKDownloadURL(), tempSDKFile);
+            UltralightLibraryDownloader.extractBinaries(tempSDKFile, targetDirectory, nativePlatform);
         }
         catch (Exception exception)
         {
@@ -103,7 +104,7 @@ public final class UltralightLibraryDownloader
     // TODO: (Ayydxn) Move back to using Commons Compress ASAP.
     //  1.20.1 uses a version of Commons Compress that doesn't support the 7z format, which prevents it from extracting the Ultralight libraries properly.
     //  This is a temporary workaround until we update to a newer version of the game which (hopefully) uses a newer version of Commons Compress with that support.
-    private static void extractBinaries(Path ultralightSDKPath, Path targetDirectory, UltralightPlatform platform) throws IOException
+    private static void extractBinaries(Path ultralightSDKPath, Path targetDirectory, OrbitNativePlatform nativePlatform) throws IOException
     {
 		try (SevenZFile ultralightSDKArchive = SevenZFile.builder()
 			.setPath(ultralightSDKPath)
@@ -119,7 +120,7 @@ public final class UltralightLibraryDownloader
 				String currentEntryName = currentEntry.getName().replace('\\', '/');
 				String filename = currentEntryName.substring(currentEntryName.lastIndexOf('/') + 1);
 
-				if (!platform.getLibraryFiles().contains(filename))
+				if (!nativePlatform.getUltralightLibraryFiles().contains(filename))
 					continue;
 
 				try (InputStream inputStream = ultralightSDKArchive.getInputStream(currentEntry))

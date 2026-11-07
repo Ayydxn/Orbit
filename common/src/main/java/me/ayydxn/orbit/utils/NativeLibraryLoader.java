@@ -3,7 +3,6 @@ package me.ayydxn.orbit.utils;
 import dev.architectury.platform.Platform;
 import me.ayydxn.orbit.OrbitMod;
 import me.ayydxn.orbit.platform.PlatformResourceLocator;
-import me.ayydxn.orbit.utils.ultralight.UltralightPlatform;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -49,7 +48,7 @@ public final class NativeLibraryLoader
 
     private static void loadUltralightLibraries(@NotNull Path librariesFolder)
     {
-        for (String ultralightLibrary : UltralightPlatform.getCurrentPlatform().getLibraryFiles())
+        for (String ultralightLibrary : OrbitNativePlatform.getCurrent().getUltralightLibraryFiles())
         {
             Path ultralightLibraryPath = librariesFolder.resolve(ultralightLibrary);
 
@@ -69,9 +68,9 @@ public final class NativeLibraryLoader
     private static void loadJNIBridgeLibrary(@NotNull Path librariesPath)
     {
         // First, try to load the JNI bridge from our classpath resources folder.
-        String platform = getCurrentPlatformString();
-        String libraryFilename = getPlatformLibraryFilename("OrbitJNIBridge");
-        String resourcePath = "/natives/" + platform + "/" + libraryFilename;
+		OrbitNativePlatform platform = OrbitNativePlatform.getCurrent();
+		String libraryFilename = platform.getJNIBridgeLibraryFileName();
+		String resourcePath = "/natives/" + platform.getID() + "/" + libraryFilename;
 
         try (InputStream inputStream = PlatformResourceLocator.getResourceAsStream(resourcePath))
         {
@@ -181,32 +180,6 @@ public final class NativeLibraryLoader
         {
             throw new IllegalStateException("SHA-256 is unavailable!", exception);
         }
-    }
-
-    private static String getCurrentPlatformString()
-    {
-        String os = System.getProperty("os.name").toLowerCase();
-
-        if (os.contains("win"))
-            return "windows-x64";
-
-        if (os.contains("mac"))
-            return "macos-arm64";
-
-        return "linux-x64";
-    }
-
-    private static String getPlatformLibraryFilename(String baseName)
-    {
-        String os = System.getProperty("os.name").toLowerCase();
-
-        if (os.contains("win"))
-            return baseName + ".dll";
-
-        if (os.contains("mac"))
-            return "lib" + baseName + ".dylib";
-
-        return "lib" + baseName + ".so";
     }
 
     public static LibraryIntegrityStatus getLibraryIntegrityStatus()

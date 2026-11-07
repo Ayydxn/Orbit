@@ -3,8 +3,8 @@ package me.ayydxn.orbit;
 import dev.architectury.platform.Platform;
 import me.ayydxn.orbit.utils.NativeLibraryLoader;
 import me.ayydxn.orbit.utils.OrbitConstants;
+import me.ayydxn.orbit.utils.OrbitNativePlatform;
 import me.ayydxn.orbit.utils.ultralight.UltralightLibraryDownloader;
-import me.ayydxn.orbit.utils.ultralight.UltralightPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import org.apache.logging.log4j.LogManager;
@@ -59,7 +59,7 @@ public class OrbitMod
         if (!Files.exists(OrbitConstants.ORBIT_DIRECTORY))
             return false;
 
-        return UltralightPlatform.getCurrentPlatform().getLibraryFiles().stream()
+        return OrbitNativePlatform.getCurrent().getUltralightLibraryFiles().stream()
                 .map(OrbitConstants.ORBIT_DIRECTORY::resolve)
                 .allMatch(path -> Files.exists(path) && Files.isRegularFile(path));
     }
