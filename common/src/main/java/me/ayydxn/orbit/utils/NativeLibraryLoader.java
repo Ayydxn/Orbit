@@ -20,9 +20,12 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 public final class NativeLibraryLoader
 {
+	private static final CompletableFuture<NativeLibraryLoadStatus> LOAD_FUTURE = new CompletableFuture<>();
+
 	private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
 		.followRedirects(HttpClient.Redirect.NORMAL)
 		.connectTimeout(Duration.ofSeconds(10))
@@ -37,48 +40,61 @@ public final class NativeLibraryLoader
 	{
 	}
 
-	public static synchronized void load(@NotNull Path librariesPath)
+	public static synchronized void startLoading(@NotNull Path librariesPath)
 	{
 		if (nativeLibraryLoadStatus.state() != NativeLibraryLoadStatus.State.NOT_LOADED)
 			return;
 
+		nativeLibraryLoadStatus = NativeLibraryLoadStatus.loading();
+
+		// Getting this stuff on the main thread so that we don't have to on our worker thread, which could be dangerous.
+		LibraryLoadContext loadContext = new LibraryLoadContext(librariesPath, Platform.getMod(OrbitMod.MOD_ID).getVersion(), Platform.isDevelopmentEnvironment());
+
+		Thread libraryLoaderThread = new Thread(() -> NativeLibraryLoader.runLoad(loadContext), "Orbit-NativeLibraryLoader");
+		libraryLoaderThread.setDaemon(true);
+		libraryLoaderThread.start();
+	}
+
+	private static void runLoad(LibraryLoadContext loadContext)
+	{
+		NativeLibraryLoadStatus result;
+
 		try
 		{
-			nativeLibraryLoadStatus = NativeLibraryLoader.loadLibraries(librariesPath);
+			result = NativeLibraryLoader.loadLibraries(loadContext);
 		}
 		catch (NativeLibraryLoadException exception)
 		{
-			OrbitMod.LOGGER.error("Failed to load Orbit's native libraries ({}): {}", exception.getFailureReason(), exception.getMessage(),
-				exception.getCause());
+			OrbitMod.LOGGER.error("Failed to load Orbit's native libraries ({}): {}", exception.getFailureReason(), exception.getMessage(), exception.getCause());
 
-			nativeLibraryLoadStatus = NativeLibraryLoadStatus.failed(exception.getFailureReason());
+			result = NativeLibraryLoadStatus.failed(exception.getFailureReason());
 		}
-		catch (RuntimeException | LinkageError exception)
+		catch (Throwable throwable)
 		{
-			OrbitMod.LOGGER.error("Unexpected failure while loading Orbit's native libraries", exception);
+			OrbitMod.LOGGER.error("Unexpected failure while loading Orbit's native libraries", throwable);
 
-			nativeLibraryLoadStatus = NativeLibraryLoadStatus.failed(NativeLibraryLoadStatus.FailureReason.UNKNOWN);
+			result = NativeLibraryLoadStatus.failed(NativeLibraryLoadStatus.FailureReason.UNKNOWN);
 		}
+
+		// The status has to be set before the future completes, so anything waiting in the future sees a consistent state.
+		nativeLibraryLoadStatus = result;
+
+		LOAD_FUTURE.complete(result);
 	}
 
-	public static NativeLibraryLoadStatus getLoadStatus()
-	{
-		return nativeLibraryLoadStatus;
-	}
-
-	private static NativeLibraryLoadStatus loadLibraries(Path librariesPath) throws NativeLibraryLoadException
+	private static NativeLibraryLoadStatus loadLibraries(LibraryLoadContext loadContext) throws NativeLibraryLoadException
 	{
 		OrbitNativePlatform nativePlatform = NativeLibraryLoader.detectPlatform();
 
-		NativeLibraryLoader.ensureUltralightLibrariesPresent(librariesPath, nativePlatform);
+		NativeLibraryLoader.ensureUltralightLibrariesPresent(loadContext.librariesPath, nativePlatform);
 
 		// Everything that can fail verification happens before any native code is loaded.
 		byte[] jniBridgeLibraryBytes = NativeLibraryLoader.readEmbeddedJNIBridgeLibrary(nativePlatform);
 		boolean wasJNIBridgeLibraryVerified = NativeLibraryLoader.verifyJNIBridgeLibrary(jniBridgeLibraryBytes, nativePlatform);
-		Path jniBridgeLibraryPath = NativeLibraryLoader.writeJNIBridgeLibrary(librariesPath, nativePlatform, jniBridgeLibraryBytes);
+		Path jniBridgeLibraryPath = NativeLibraryLoader.writeJNIBridgeLibrary(loadContext.librariesPath, nativePlatform, jniBridgeLibraryBytes);
 
 		for (String ultralightLibrary : nativePlatform.getUltralightLibraryFiles())
-			NativeLibraryLoader.loadLibrary(librariesPath.resolve(ultralightLibrary));
+			NativeLibraryLoader.loadLibrary(loadContext.librariesPath.resolve(ultralightLibrary));
 
 		OrbitMod.LOGGER.info("Successfully loaded Ultralight libraries!");
 
@@ -245,6 +261,11 @@ public final class NativeLibraryLoader
 		}
 	}
 
+	public static NativeLibraryLoadStatus getLoadStatus()
+	{
+		return nativeLibraryLoadStatus;
+	}
+
 	private static final class NativeLibraryLoadException extends Exception
 	{
 		private final NativeLibraryLoadStatus.FailureReason failureReason;
@@ -261,4 +282,6 @@ public final class NativeLibraryLoader
 			return this.failureReason;
 		}
 	}
+
+	private record LibraryLoadContext(Path librariesPath, String modVersion, boolean isDevelopmentEnvironment) {}
 }

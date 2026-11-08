@@ -19,6 +19,11 @@ public record NativeLibraryLoadStatus(@NotNull State state, FailureReason failur
         return new NativeLibraryLoadStatus(State.NOT_LOADED, null);
     }
 
+	public static NativeLibraryLoadStatus loading()
+	{
+		return new NativeLibraryLoadStatus(State.LOADING, null);
+	}
+
     public static NativeLibraryLoadStatus loaded()
     {
         return new NativeLibraryLoadStatus(State.LOADED, null);
@@ -40,14 +45,10 @@ public record NativeLibraryLoadStatus(@NotNull State state, FailureReason failur
         return this.state == State.FAILED;
     }
 
-    public boolean isLoaded()
-    {
-        return this.state == State.LOADED || this.state == State.LOADED_UNVERIFIED;
-    }
-
     public enum State
     {
         NOT_LOADED,
+		LOADING,
         LOADED,
         LOADED_UNVERIFIED,
         FAILED

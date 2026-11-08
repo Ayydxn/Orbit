@@ -23,7 +23,7 @@ public class OrbitMod
 
     private OrbitMod()
     {
-        NativeLibraryLoader.load(OrbitConstants.ORBIT_DIRECTORY);
+        NativeLibraryLoader.startLoading(OrbitConstants.ORBIT_DIRECTORY);
     }
 
     public static void initialize()
