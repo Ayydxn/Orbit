@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   native:
-    name: Native Build and Test (${{ matrix.platform }})
+    name: 🔨 Native Build and Test (${{ matrix.platform }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -61,15 +61,14 @@ jobs:
           SDK_PATH: ${{ steps.sdk.outputs.path }}
         run: ./gradlew :orbit-native:test -Pplatform=${{ matrix.platform }} -Pultralight_sdk_location="$SDK_PATH"
 
-      - name: Upload JNI Bridge Library
-        uses: actions/upload-artifact@v7
+      - name: Publish Unit Tests Results
+        uses: mikepenz/action-junit-report@v6
+        if: always()
         with:
-          name: orbit-natives-${{ matrix.platform }}
-          path: orbit-native/build/generated/orbit-natives/natives
-          if-no-files-found: error
+          report_paths: build/test-results/test/TEST-*.xml
 
   build-mod:
-    name: Build Mod
+    name: 📦 Build Mod
     needs: native
     strategy:
       matrix:
@@ -93,6 +92,9 @@ jobs:
           pattern: orbit-natives-*
           merge-multiple: true
           path: prebuilt-natives
+
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x ./gradlew
 
       # Tests already ran on each platform's runner, so they're skipped here.
       - name: Build Mod
