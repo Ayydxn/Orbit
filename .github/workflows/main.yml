@@ -1,0 +1,99 @@
+name: 🛠️ Build Orbit
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  id-token: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  native:
+    name: Native Build and Test (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [
+          21,    # Current Java LTS & minimum supported by Minecraft
+        ]
+
+        include:
+          - platform: windows-x64
+            os: windows-2025-vs2026
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v6
+        with:
+          distribution: zulu
+          java-version: ${{ matrix.java }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Fetch Ultralight SDK
+        id: sdk
+        uses: ./.github/actions/fetch-ultralight-sdk
+        with:
+          platform: ${{ matrix.platform }}
+
+      - name: Build JNI Bridge Library
+        shell: bash
+        env:
+          SDK_PATH: ${{ steps.sdk.outputs.path }}
+        run: ./gradlew :orbit-native:stageNative -Pplatform=${{ matrix.platform }} -Pultralight_sdk_location="$SDK_PATH"
+
+      - name: Run Unit Tests
+        shell: bash
+        env:
+          SDK_PATH: ${{ steps.sdk.outputs.path }}
+        run: ./gradlew :orbit-native:test -Pplatform=${{ matrix.platform }} -Pultralight_sdk_location="$SDK_PATH"
+
+      - name: Upload JNI Bridge Library
+        uses: actions/upload-artifact@v7
+        with:
+          name: orbit-natives-${{ matrix.platform }}
+          path: orbit-native/build/generated/orbit-natives/natives
+          if-no-files-found: error
+
+  build-mod:
+    name: Build Mod
+    needs: native
+    strategy:
+      matrix:
+        java: [
+          21,    # Current Java LTS & minimum supported by Minecraft
+        ]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Setup JDK ${{ matrix.java }}
+        uses: actions/setup-java@v6
+        with:
+          distribution: zulu
+          java-version: ${{ matrix.java }}
+
+      - name: Download Prebuilt JNI Bridge Libraries
+        uses: actions/download-artifact@v8
+        with:
+          pattern: orbit-natives-*
+          merge-multiple: true
+          path: prebuilt-natives
+
+      # Tests already ran on each platform's runner, so they're skipped here.
+      - name: Build Mod
+        run: ./gradlew build -x test -Porbit_prebuilt_natives=prebuilt-natives

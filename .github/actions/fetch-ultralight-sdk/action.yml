@@ -1,0 +1,89 @@
+name: Fetch Ultralight SDK
+description: Downloads the pinned version of the Ultralight SDK from the official site, verifies it, and extracts it.
+
+inputs:
+  platform:
+    description: Ultralight Platform ID (Must be windows-x64, macos-arm64 or linux-x64)
+    required: true
+
+outputs:
+  path:
+    description: Directory that the SDK was extracted to
+    value: ${{ steps.result.outputs.path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read Pinned SDK Version and SHA256 Hash
+      id: pin
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+      run: |
+        set -euo pipefail
+
+        version=$(grep -E '^ultralight\.version=' ultralight-sdk.properties | cut -d= -f2- | tr -d '\r' || true)
+        sha256=$(grep -E "^ultralight\.sha256\.${PLATFORM}=" ultralight-sdk.properties | cut -d= -f2- | tr -d '\r' || true)
+
+        if [ -z "$version" ] || [ -z "$sha256" ]; then
+          echo "::error::ultralight-sdk.properties has no pinned version or hash for ${PLATFORM}."
+          exit 1
+        fi
+
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+        echo "sha256=${sha256}" >> "$GITHUB_OUTPUT"
+
+    - name: Restore Cached SDK
+      id: cache
+      uses: actions/cache@v6
+      with:
+        path: .ultralight-sdk/${{ inputs.platform }}
+        key: ultralight-sdk-${{ inputs.platform }}-${{ steps.pin.outputs.version }}-${{ steps.pin.outputs.sha256 }}
+
+    - name: Download and Verify SDK
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        VERSION: ${{ steps.pin.outputs.version }}
+        EXPECTED_SHA256: ${{ steps.pin.outputs.sha256 }}
+      run: |
+        set -euo pipefail
+
+        base_url="https://ultralig.ht/api/v1/sdk/download?platform=${PLATFORM}&version=${VERSION}"
+        archive="ultralight-sdk-download.7z"
+        sdk_dir=".ultralight-sdk/${PLATFORM}"
+
+        # The API reports the archive hash for this version. If it no longer matches our pin, Ultralight changed the files under us.
+        api_sha256=$(curl -fsSL "${base_url}&format=json" | jq -r '.sha256')
+        if [ "$api_sha256" != "$EXPECTED_SHA256" ]; then
+          echo "::error::Ultralight's API reports ${api_sha256} for ${VERSION} (${PLATFORM}), but ultralight-sdk.properties pins ${EXPECTED_SHA256}."
+          exit 1
+        fi
+
+        curl -fsSL --retry 3 -o "$archive" "$base_url"
+
+        actual_sha256=$(openssl dgst -sha256 "$archive" | awk '{print $NF}')
+        if [ "$actual_sha256" != "$EXPECTED_SHA256" ]; then
+          echo "::error::The downloaded SDK archive's hash (${actual_sha256}) does not match the pinned SDK hash (${EXPECTED_SHA256})."
+          exit 1
+        fi
+
+        mkdir -p "$sdk_dir"
+        7z x "$archive" -o"$sdk_dir" -y > /dev/null
+        rm -f "$archive"
+
+    - name: Check Extracted SDK
+      id: result
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+      run: |
+        set -euo pipefail
+
+        if [ -z "$(ls -A ".ultralight-sdk/${PLATFORM}" 2>/dev/null)" ]; then
+          echo "::error::The Ultralight SDK directory is empty."
+          exit 1
+        fi
+
+        echo "path=${GITHUB_WORKSPACE}/.ultralight-sdk/${PLATFORM}" >> "$GITHUB_OUTPUT"

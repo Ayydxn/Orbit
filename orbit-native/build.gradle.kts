@@ -23,6 +23,11 @@ val ultralightSdkLocation: String = (localProperties.getProperty("ultralight_sdk
     }
 }
 
+// When set, the native build is skipped, and this directory (laid out as <platform>/<library>) is bundled as-is instead.
+// CI uses this, so the final mod JAR contains the exact JNI bridge binaries that were built and tested.
+val prebuiltNativesLocation: String = (findProperty("orbit_prebuilt_natives") as String?) ?: ""
+val usePrebuiltNatives = prebuiltNativesLocation.isNotBlank()
+
 val osName: String = System.getProperty("os.name").lowercase()
 val osArchitecture: String = System.getProperty("os.arch").lowercase()
 
@@ -93,7 +98,7 @@ val configureCMake = tasks.register("configureCMake", Exec::class) {
     group = "native"
     description = "Runs CMake to configure the project files for our native build"
 
-    onlyIf { ultralightSdkLocation.isNotBlank() }
+    onlyIf { !usePrebuiltNatives && ultralightSdkLocation.isNotBlank() }
 
     doFirst { cmakeBuildDirectory.mkdirs() }
 
@@ -114,7 +119,7 @@ val compileNative = tasks.register("compileNative", Exec::class) {
 
     dependsOn(configureCMake)
 
-    onlyIf { ultralightSdkLocation.isNotBlank() }
+    onlyIf { !usePrebuiltNatives && ultralightSdkLocation.isNotBlank() }
 
     workingDir = cmakeBuildDirectory
     commandLine("cmake", "--build", ".", "--config", "Release", "--parallel")
@@ -141,15 +146,31 @@ val stageJNIBridgeLibrary = tasks.register<Sync>("stageJNIBridgeLibrary") {
     group = "native"
     description = "Stages the compiled JNI bridge library so it's bundled into the jar's resources"
 
-    dependsOn(compileNative)
+    if (usePrebuiltNatives)
+    {
+        val prebuiltNativesDirectory = rootProject.file(prebuiltNativesLocation)
 
-    onlyIf { ultralightSdkLocation.isNotBlank() }
+        doFirst {
+            if (!prebuiltNativesDirectory.isDirectory)
+                throw GradleException("orbit_prebuilt_natives points to $prebuiltNativesDirectory which isn't a directory.")
+        }
 
-    from(cmakeBuildDirectory) {
-        include("Release/$nativeLibraryName", nativeLibraryName)
-        eachFile { relativePath = RelativePath(true, "natives", platform, name) }
+        from(prebuiltNativesDirectory) {
+            into("natives")
+        }
+    }
+    else
+    {
+        dependsOn(compileNative)
 
-        includeEmptyDirs = false
+        onlyIf { ultralightSdkLocation.isNotBlank() }
+
+        from(cmakeBuildDirectory) {
+            include("Release/$nativeLibraryName", nativeLibraryName)
+            eachFile { relativePath = RelativePath(true, "natives", platform, name) }
+
+            includeEmptyDirs = false
+        }
     }
 
     into(layout.buildDirectory.dir("generated/orbit-natives"))
@@ -190,6 +211,8 @@ tasks.processResources {
 
 tasks.test {
     useJUnitPlatform()
+
+    dependsOn(compileNative)
 
     val nativeLibraryBin = findBuiltNativeLibrary()?.parentFile?.absolutePath
         ?: throw GradleException("Unit tests unavailable because $nativeLibraryName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
