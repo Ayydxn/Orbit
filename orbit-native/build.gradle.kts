@@ -214,11 +214,13 @@ tasks.test {
 
     dependsOn(compileNative)
 
-    val nativeLibraryBin = findBuiltNativeLibrary()?.parentFile?.absolutePath
-        ?: throw GradleException("Unit tests unavailable because $nativeLibraryName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
-    val ultralightBin = file("$ultralightSdkLocation/bin").absolutePath
+    doFirst {
+        val nativeLibraryBin = findBuiltNativeLibrary()?.parentFile?.absolutePath
+            ?: throw GradleException("Unit tests unavailable because $nativeLibraryName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
+        val ultralightBin = file("$ultralightSdkLocation/bin").absolutePath
 
-    systemProperty("java.library.path", "$nativeLibraryBin;$ultralightBin")
+        systemProperty("java.library.path", "$nativeLibraryBin${File.pathSeparator}$ultralightBin")
+    }
 
     failOnNoDiscoveredTests = false
 
