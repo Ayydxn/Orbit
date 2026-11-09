@@ -1,10 +1,12 @@
 package me.ayydxn.orbit.utils;
 
+import me.ayydxn.orbit.natives.NativeBackendType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public record NativeLibraryLoadStatus(@NotNull State state, FailureReason failureReason)
+public record NativeLibraryLoadStatus(@NotNull State state, FailureReason failureReason, @Nullable NativeBackendType nativeBackendType)
 {
     public NativeLibraryLoadStatus
     {
@@ -16,28 +18,28 @@ public record NativeLibraryLoadStatus(@NotNull State state, FailureReason failur
 
     public static NativeLibraryLoadStatus notLoaded()
     {
-        return new NativeLibraryLoadStatus(State.NOT_LOADED, null);
+        return new NativeLibraryLoadStatus(State.NOT_LOADED, null, null);
     }
 
 	public static NativeLibraryLoadStatus loading()
 	{
-		return new NativeLibraryLoadStatus(State.LOADING, null);
+		return new NativeLibraryLoadStatus(State.LOADING, null, null);
 	}
 
-    public static NativeLibraryLoadStatus loaded()
+    public static NativeLibraryLoadStatus loaded(@NotNull NativeBackendType backendType)
     {
-        return new NativeLibraryLoadStatus(State.LOADED, null);
+        return new NativeLibraryLoadStatus(State.LOADED, null, Objects.requireNonNull(backendType));
     }
 
     // Loaded, but without verifying the JNI bridge against the release checksum (development environment or the check was disabled).
-    public static NativeLibraryLoadStatus loadedUnverified()
+    public static NativeLibraryLoadStatus loadedUnverified(@NotNull NativeBackendType backendType)
     {
-        return new NativeLibraryLoadStatus(State.LOADED_UNVERIFIED, null);
-    }
+        return new NativeLibraryLoadStatus(State.LOADED_UNVERIFIED, null, Objects.requireNonNull(backendType));
+	}
 
     public static NativeLibraryLoadStatus failed(FailureReason failureReason)
     {
-        return new NativeLibraryLoadStatus(State.FAILED, Objects.requireNonNull(failureReason));
+        return new NativeLibraryLoadStatus(State.FAILED, Objects.requireNonNull(failureReason), null);
     }
 
     public boolean isFailed()
@@ -57,6 +59,7 @@ public record NativeLibraryLoadStatus(@NotNull State state, FailureReason failur
     public enum FailureReason
     {
         UNSUPPORTED_PLATFORM,
+		NATIVE_BACKEND_UNAVAILABLE,
         ULTRALIGHT_DOWNLOAD_FAILED,
         ULTRALIGHT_LIBRARIES_INAUTHENTIC,
         JNI_BRIDGE_MISSING,

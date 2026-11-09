@@ -8,6 +8,9 @@
   "orbit.texts.native_load_failed.unsupported_platform.description": "Orbit doesn't support this platform. It currently runs on 64-bit Windows, 64-bit Linux and Apple Silicon Macs.",
   "orbit.texts.native_load_failed.unsupported_platform.fix": "Orbit can't run on this system, so you'll need to remove it from your mods folder.",
 
+  "orbit.texts.native_load_failed.native_backend_unavailable.description": "Orbit couldn't find a native backend that works on this system.",
+  "orbit.texts.native_load_failed.native_backend_unavailable.fix": "If you set the -Dorbit.nativeBackend JVM argument, make sure it's either jni or ffm, and that FFM is only used on a Java 22 or newer runtime. Otherwise, remove it and relaunch the game, or check the game log for details.",
+
   "orbit.texts.native_load_failed.ultralight_download_failed.description": "Orbit couldn't download the Ultralight libraries it needs.",
   "orbit.texts.native_load_failed.ultralight_download_failed.fix": "Check your internet connection and relaunch the game. If you're behind a firewall or proxy, make sure the game is allowed to access the internet.",
 
