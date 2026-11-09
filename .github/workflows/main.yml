@@ -53,7 +53,7 @@ jobs:
         shell: bash
         env:
           SDK_PATH: ${{ steps.sdk.outputs.path }}
-        run: ./gradlew :orbit-native:stageNative -Pplatform=${{ matrix.platform }} -Pultralight_sdk_location="$SDK_PATH"
+        run: ./gradlew :orbit-native:stageJNIBridgeLibrary -Pplatform=${{ matrix.platform }} -Pultralight_sdk_location="$SDK_PATH"
 
       - name: Run Unit Tests
         shell: bash
