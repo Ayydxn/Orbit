@@ -63,6 +63,18 @@ fun findBuiltNativeLibrary(): File? = listOf(
     File(cmakeBuildDirectory, nativeLibraryName)
 ).firstOrNull { it.exists() }
 
+fun testLibraryPath(includeJNIBridge: Boolean): String
+{
+    val ultralightBin = file("$ultralightSdkLocation/bin").absolutePath
+    if (!includeJNIBridge)
+        return ultralightBin
+
+    val nativeLibraryBin = findBuiltNativeLibrary()?.parentFile?.absolutePath
+        ?: throw GradleException("Unit tests unavailable because $nativeLibraryName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
+
+    return "$nativeLibraryBin${File.pathSeparator}$ultralightBin"
+}
+
 repositories {
     mavenCentral()
 }
@@ -93,6 +105,10 @@ sourceSets {
 
         compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
         runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
+    }
+
+    test {
+        compileClasspath += sourceSets.main.get().compileClasspath
     }
 }
 
@@ -196,8 +212,42 @@ val stageJNIBridgeLibrary = tasks.register<Sync>("stageJNIBridgeLibrary") {
     logger.quiet("[orbit-native] Staged native library to ${layout.buildDirectory.dir("generated/orbit-natives").get().asFile.absolutePath}")
 }
 
+val testFFM = tasks.register<Test>("testFFM") {
+    group = "verification"
+    description = "Runs the unit tests against the FFM backend on Java $ffmJavaVersion"
+
+    // The jar is used instead of the class directories, so the tests see the same META-INF/versions/$ffmJavaVersion layout the mod ships with.
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = files(tasks.jar.flatMap { it.archiveFile }) + sourceSets.test.get().runtimeClasspath - sourceSets.main.get().output
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(ffmJavaVersion)
+        vendor = JvmVendorSpec.AZUL
+    }
+
+    systemProperty("orbit.test.expectedBackend", "FFM")
+
+    doFirst {
+        systemProperty("java.library.path", testLibraryPath(false))
+    }
+}
+
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+
+    failOnNoDiscoveredTests = false
+
+    // Every full run checks that each contract method was exercised.
+    // The orbitSkipContractCoverage is passed when you only want to run part of the suite.
+    systemProperty("orbit.test.enforceContractCoverage", (!project.hasProperty("orbit.SkipContractCoverage")).toString())
+
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 tasks.named<JavaCompile>("compileJava") {
@@ -228,21 +278,12 @@ tasks.processResources {
 }
 
 tasks.test {
-    useJUnitPlatform()
-
     dependsOn(compileNative)
+    finalizedBy(testFFM)
+
+    systemProperty("orbit.test.expectedBackend", "JNI")
 
     doFirst {
-        val nativeLibraryBin = findBuiltNativeLibrary()?.parentFile?.absolutePath
-            ?: throw GradleException("Unit tests unavailable because $nativeLibraryName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
-        val ultralightBin = file("$ultralightSdkLocation/bin").absolutePath
-
-        systemProperty("java.library.path", "$nativeLibraryBin${File.pathSeparator}$ultralightBin")
-    }
-
-    failOnNoDiscoveredTests = false
-
-    testLogging {
-        events("passed", "skipped", "failed")
+        systemProperty("java.library.path", testLibraryPath(true))
     }
 }
