@@ -1,4 +1,5 @@
 #include "core/NativeInterfaceRegistry.h"
+#include "ultralight/Ultralight.h"
 
 #include <jni.h>
 
@@ -16,6 +17,8 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
         return JNI_ERR;
 
     GNativeInterfaceRegistry = std::make_unique<CNativeInterfaceRegistry>();
+    GNativeInterfaceRegistry->Add(std::make_shared<CUltralight>());
+
     GNativeInterfaceRegistry->RegisterInterfaces(Environment);
 
     return JNI_VERSION_10;

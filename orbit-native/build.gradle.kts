@@ -68,6 +68,8 @@ repositories {
 }
 
 dependencies {
+    compileOnly("org.jetbrains:annotations:${rootProject.extra["jetbrains_annotations_version"]}")
+
     /*--------------------*/
     /* -- Unit Testing -- */
     /*--------------------*/
@@ -89,8 +91,8 @@ sourceSets {
     create("ffm") {
         java.srcDirs("src/ffm/java")
 
-        compileClasspath += sourceSets.main.get().output
-        runtimeClasspath += sourceSets.main.get().output
+        compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+        runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
     }
 }
 
@@ -140,6 +142,22 @@ val compileNative = tasks.register("compileNative", Exec::class) {
 
         logger.quiet("[orbit-native] Wrote native library checksum to ${checksumFile.absolutePath}")
     }
+}
+
+val generateJNIHeaders = tasks.register<JavaCompile>("generateJNIHeaders") {
+    group = "native"
+    description = "Generates JNI headers for reference when writing the JNI bridge functions. They aren't needed for actually compiling the JNI bridge."
+
+    source = sourceSets.main.get().java
+    classpath = sourceSets.main.get().compileClasspath
+    destinationDirectory.set(layout.buildDirectory.dir("jni-classes"))
+
+    options.compilerArgs.addAll(
+        listOf(
+            "-h", layout.buildDirectory.dir("jni-headers").get().asFile.absolutePath,
+            "-implicit:class"  // still emit .class files for javac cache
+        )
+    )
 }
 
 val stageJNIBridgeLibrary = tasks.register<Sync>("stageJNIBridgeLibrary") {

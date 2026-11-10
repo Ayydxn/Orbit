@@ -15,13 +15,15 @@ public final class FFMFunctions
 	{
 	}
 
+	public static MethodHandle link(String symbolName, FunctionDescriptor functionDescriptor)
+	{
+		MemorySegment functionSymbol = findSymbol(symbolName);
+
+		return LINKER.downcallHandle(functionSymbol, functionDescriptor);
+	}
+
 	public static MemorySegment findSymbol(String symbolName)
 	{
 		return SYMBOL_LOOKUP.find(symbolName).orElseThrow(() -> new IllegalArgumentException("Couldn't find the native symbol '" + symbolName + "'"));
-	}
-
-	public static MethodHandle downcall(String symbolName, FunctionDescriptor functionDescriptor)
-	{
-		return LINKER.downcallHandle(FFMFunctions.findSymbol(symbolName), functionDescriptor);
 	}
 }

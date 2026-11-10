@@ -28,7 +28,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
 add_library(OrbitJNIBridge SHARED ${SOURCES})
 
 target_include_directories(OrbitJNIBridge PRIVATE
-        ${CMAKE_SOURCE_DIR}
+        "${CMAKE_SOURCE_DIR}/src"
         ${JNI_INCLUDE_DIRS}
         ${UL_INCLUDE}
 )

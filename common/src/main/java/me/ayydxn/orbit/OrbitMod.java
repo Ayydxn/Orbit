@@ -3,15 +3,10 @@ package me.ayydxn.orbit;
 import dev.architectury.platform.Platform;
 import me.ayydxn.orbit.utils.NativeLibraryLoader;
 import me.ayydxn.orbit.utils.OrbitConstants;
-import me.ayydxn.orbit.utils.OrbitNativePlatform;
-import me.ayydxn.orbit.utils.ultralight.UltralightLibraryDownloader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.io.IOException;
-import java.nio.file.Files;
 
 @Environment(EnvType.CLIENT)
 public class OrbitMod
@@ -21,8 +16,12 @@ public class OrbitMod
     public static final Logger LOGGER = LogManager.getLogger("Orbit UI");
     public static final String MOD_ID = "orbit";
 
+	private final String version;
+
     private OrbitMod()
     {
+		this.version = Platform.getMod(MOD_ID).getVersion();
+
         NativeLibraryLoader.startLoading(OrbitConstants.ORBIT_DIRECTORY);
     }
 
@@ -44,13 +43,8 @@ public class OrbitMod
         return INSTANCE;
     }
 
-    private boolean areUltralightLibrariesPresent()
-    {
-        if (!Files.exists(OrbitConstants.ORBIT_DIRECTORY))
-            return false;
-
-        return OrbitNativePlatform.getCurrent().getUltralightLibraryFiles().stream()
-                .map(OrbitConstants.ORBIT_DIRECTORY::resolve)
-                .allMatch(path -> Files.exists(path) && Files.isRegularFile(path));
-    }
+	public String getVersion()
+	{
+		return this.version;
+	}
 }
