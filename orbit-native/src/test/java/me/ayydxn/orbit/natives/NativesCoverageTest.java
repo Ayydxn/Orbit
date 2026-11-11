@@ -20,7 +20,7 @@ class NativesCoverageTest
 	{
 		assumeTrue(Boolean.getBoolean(ENFORCE_PROPERTY), "Contract coverage is only enforced when the whole suite runs (-D" + ENFORCE_PROPERTY + "=true)");
 
-		RecordingNativeBackend recordingBackend = assertInstanceOf(RecordingNativeBackend.class, NativeBackendManager.getInstance(),
+		RecordingNativeBackend recordingBackend = assertInstanceOf(RecordingNativeBackend.class, NativeBackendManager.getCurrentBackendInstance(),
 			"The tests weren't set up through OrbitGlobalSetupExtension");
 
 		assertTrue(recordingBackend.getUncoveredContractMethods().isEmpty(),

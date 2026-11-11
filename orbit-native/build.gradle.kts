@@ -225,6 +225,8 @@ val testFFM = tasks.register<Test>("testFFM") {
         vendor = JvmVendorSpec.AZUL
     }
 
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+
     systemProperty("orbit.test.expectedBackend", "FFM")
 
     doFirst {

@@ -5,7 +5,7 @@ import me.ayydxn.orbit.natives.ultralight.UltralightNatives;
 
 public final class Ultralight
 {
-	private static final UltralightNatives NATIVES = NativeBackendManager.getInstance().ultralight();
+	private static final UltralightNatives NATIVES = NativeBackendManager.getCurrentBackendInstance().ultralight();
 
 	public static String versionString()
 	{

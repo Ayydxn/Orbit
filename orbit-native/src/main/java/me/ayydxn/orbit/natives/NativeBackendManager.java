@@ -49,7 +49,7 @@ public final class NativeBackendManager
 		installedBackend = Objects.requireNonNull(orbitNativeBackend);
 	}
 
-	public static OrbitNativeBackend getInstance()
+	public static OrbitNativeBackend getCurrentBackendInstance()
 	{
 		OrbitNativeBackend orbitNativeBackend = installedBackend;
 		if (orbitNativeBackend == null)

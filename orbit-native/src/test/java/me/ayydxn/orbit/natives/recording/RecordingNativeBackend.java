@@ -3,6 +3,7 @@ package me.ayydxn.orbit.natives.recording;
 import me.ayydxn.orbit.natives.NativeBackendType;
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
+import me.ayydxn.orbit.natives.ultralight.ULStringNatives;
 import me.ayydxn.orbit.natives.ultralight.UltralightNatives;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,12 +20,14 @@ public final class RecordingNativeBackend implements OrbitNativeBackend
 	private final NativeCallRecorder recorder = new NativeCallRecorder();
 
 	private final UltralightNatives ultralightNatives;
+	private final ULStringNatives ulStringNatives;
 
 	public RecordingNativeBackend(OrbitNativeBackend delegate)
 	{
 		this.delegate = delegate;
 
 		this.ultralightNatives = this.recorder.wrap(UltralightNatives.class, delegate.ultralight());
+		this.ulStringNatives = this.recorder.wrap(ULStringNatives.class, delegate.ulString());
 	}
 
 	@Override
@@ -43,6 +46,12 @@ public final class RecordingNativeBackend implements OrbitNativeBackend
 	public @NotNull UltralightNatives ultralight()
 	{
 		return this.ultralightNatives;
+	}
+
+	@Override
+	public @NotNull ULStringNatives ulString()
+	{
+		return this.ulStringNatives;
 	}
 
 	public Set<String> getUncoveredContractMethods()

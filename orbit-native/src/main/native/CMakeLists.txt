@@ -41,6 +41,10 @@ target_link_libraries(OrbitJNIBridge PRIVATE
         WebCore
 )
 
+target_compile_definitions(OrbitJNIBridge PRIVATE
+        _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+)
+
 # Export only JNI symbols, keep everything else hidden
 set_target_properties(OrbitJNIBridge PROPERTIES
         CXX_VISIBILITY_PRESET hidden

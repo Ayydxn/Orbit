@@ -11,15 +11,47 @@ public record NativeFunctionSymbol(MethodHandle methodHandle, String methodName)
 		return new NativeFunctionSymbol(FFMFunctions.link(methodName, functionDescriptor), methodName);
 	}
 
-	public String getString()
+	public void invoke(Object... arguments)
+	{
+		this.invokeNativeFunction(arguments);
+	}
+
+	public long getLong(Object... arguments)
+	{
+		return (long) this.invokeNativeFunction(arguments);
+	}
+
+	public boolean getBoolean(Object... arguments)
+	{
+		return (boolean) this.invokeNativeFunction(arguments);
+	}
+
+	public String getString(Object... arguments)
+	{
+		return this.getPointer(arguments)
+			.reinterpret(Long.MAX_VALUE)
+			.getString(0L);
+	}
+
+	public MemorySegment getPointer(Object... arguments)
+	{
+		MemorySegment result = this.getNullablePointer(arguments);
+		if (result.equals(MemorySegment.NULL))
+			throw new NullPointerException(String.format("The native call to %s returned null!", this.methodName));
+
+		return result;
+	}
+
+	public MemorySegment getNullablePointer(Object... arguments)
+	{
+		return (MemorySegment) this.invokeNativeFunction(arguments);
+	}
+
+	private Object invokeNativeFunction(Object... arguments)
 	{
 		try
 		{
-			MemorySegment result = (MemorySegment) this.methodHandle.invoke();
-			if (result.equals(MemorySegment.NULL))
-				throw new NullPointerException(String.format("The native call to %s returned null!", this.methodName));
-
-			return result.reinterpret(Long.MAX_VALUE).getString(0L);
+			return this.methodHandle.invokeWithArguments(arguments);
 		}
 		catch (Throwable throwable)
 		{

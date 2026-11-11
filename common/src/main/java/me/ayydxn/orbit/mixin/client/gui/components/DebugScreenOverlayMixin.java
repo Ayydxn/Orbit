@@ -22,7 +22,7 @@ public class DebugScreenOverlayMixin
 		lines.add("Orbit Version: %s".formatted(OrbitMod.getInstance().getVersion()));
 		lines.add("Ultralight Version: %s".formatted(Ultralight.versionString()));
 		lines.add("WebKit Version: %s".formatted(Ultralight.webkitVersionString()));
-		lines.add("Active Native Backend: %s".formatted(NativeBackendManager.getInstance().getType().getName()));
+		lines.add("Active Native Backend: %s".formatted(NativeBackendManager.getCurrentBackendInstance().getType().getName()));
 
 		return lines;
 	}
