@@ -1,6 +1,7 @@
 package me.ayydxn.orbit.natives;
 
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
+import me.ayydxn.orbit.natives.ultralight.ULConfigNatives;
 import me.ayydxn.orbit.natives.ultralight.ULStringNatives;
 import me.ayydxn.orbit.natives.ultralight.UltralightNatives;
 import me.ayydxn.orbit.ultralight.ULString;
@@ -18,4 +19,7 @@ public interface OrbitNativeBackend
 
 	@NotNull
 	ULStringNatives ulString();
+
+	@NotNull
+	ULConfigNatives ulConfig();
 }

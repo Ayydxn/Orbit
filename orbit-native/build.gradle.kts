@@ -289,3 +289,7 @@ tasks.test {
         systemProperty("java.library.path", testLibraryPath(true))
     }
 }
+
+tasks.javadoc {
+    (options as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:-missing", true)
+}

@@ -3,6 +3,7 @@ package me.ayydxn.orbit.natives.recording;
 import me.ayydxn.orbit.natives.NativeBackendType;
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
+import me.ayydxn.orbit.natives.ultralight.ULConfigNatives;
 import me.ayydxn.orbit.natives.ultralight.ULStringNatives;
 import me.ayydxn.orbit.natives.ultralight.UltralightNatives;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +22,7 @@ public final class RecordingNativeBackend implements OrbitNativeBackend
 
 	private final UltralightNatives ultralightNatives;
 	private final ULStringNatives ulStringNatives;
+    private final ULConfigNatives ulConfigNatives;
 
 	public RecordingNativeBackend(OrbitNativeBackend delegate)
 	{
@@ -28,6 +30,7 @@ public final class RecordingNativeBackend implements OrbitNativeBackend
 
 		this.ultralightNatives = this.recorder.wrap(UltralightNatives.class, delegate.ultralight());
 		this.ulStringNatives = this.recorder.wrap(ULStringNatives.class, delegate.ulString());
+        this.ulConfigNatives = this.recorder.wrap(ULConfigNatives.class, delegate.ulConfig());
 	}
 
 	@Override
@@ -54,7 +57,13 @@ public final class RecordingNativeBackend implements OrbitNativeBackend
 		return this.ulStringNatives;
 	}
 
-	public Set<String> getUncoveredContractMethods()
+    @Override
+    public @NotNull ULConfigNatives ulConfig()
+    {
+        return this.ulConfigNatives;
+    }
+
+    public Set<String> getUncoveredContractMethods()
 	{
 		return this.recorder.getUncoveredMethods(OrbitNativeBackend.class);
 	}

@@ -3,9 +3,11 @@ package me.ayydxn.orbit.natives.ffm;
 import me.ayydxn.orbit.natives.NativeBackendType;
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
+import me.ayydxn.orbit.natives.ffm.ultralight.FFMULConfigNatives;
 import me.ayydxn.orbit.natives.ffm.ultralight.FFMULStringNatives;
 import me.ayydxn.orbit.natives.ffm.ultralight.FFMUltralightNatives;
 import me.ayydxn.orbit.natives.ffm.utils.FFMFunctions;
+import me.ayydxn.orbit.natives.ultralight.ULConfigNatives;
 import me.ayydxn.orbit.natives.ultralight.ULStringNatives;
 import me.ayydxn.orbit.natives.ultralight.UltralightNatives;
 import org.jetbrains.annotations.NotNull;
@@ -42,5 +44,11 @@ public final class FFMNativeBackend implements OrbitNativeBackend
 	public @NotNull ULStringNatives ulString()
 	{
 		return new FFMULStringNatives();
+	}
+
+	@Override
+	public @NotNull ULConfigNatives ulConfig()
+	{
+		return new FFMULConfigNatives();
 	}
 }
