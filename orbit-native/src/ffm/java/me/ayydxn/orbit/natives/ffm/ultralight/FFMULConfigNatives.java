@@ -23,7 +23,7 @@ public final class FFMULConfigNatives implements ULConfigNatives
 		this.ulCreateConfig = NativeFunctionSymbol.of("ulCreateConfig", FunctionDescriptor.of(ValueLayout.ADDRESS));
 		this.ulDestroyConfig = NativeFunctionSymbol.of("ulDestroyConfig", FunctionDescriptor.ofVoid(ValueLayout.ADDRESS));
 		this.ulConfigSetCachePath = NativeFunctionSymbol.of("ulConfigSetCachePath", FunctionDescriptor.ofVoid(ValueLayout.ADDRESS, ValueLayout.ADDRESS));
-		this.ulConfigSetResourcePathPrefix = NativeFunctionSymbol.of("ulConfigSetCachePath", FunctionDescriptor.ofVoid(ValueLayout.ADDRESS, ValueLayout.ADDRESS));
+		this.ulConfigSetResourcePathPrefix = NativeFunctionSymbol.of("ulConfigSetResourcePathPrefix", FunctionDescriptor.ofVoid(ValueLayout.ADDRESS, ValueLayout.ADDRESS));
 		this.ulConfigSetBitmapAlignment = NativeFunctionSymbol.of("ulConfigSetBitmapAlignment", FunctionDescriptor.ofVoid(ValueLayout.ADDRESS, ValueLayout.JAVA_INT));
         this.ulConfigSetEffectQuality = NativeFunctionSymbol.of("ulConfigSetEffectQuality", FunctionDescriptor.ofVoid(ValueLayout.ADDRESS, ValueLayout.JAVA_INT));
         this.ulConfigSetUserStylesheet = NativeFunctionSymbol.of("ulConfigSetUserStylesheet", FunctionDescriptor.ofVoid(ValueLayout.ADDRESS, ValueLayout.ADDRESS));

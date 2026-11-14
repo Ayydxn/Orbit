@@ -62,28 +62,8 @@ namespace
     jstring JNICALL ULStringGetData_Native(JNIEnv* Environment, jclass, jlong StringHandle)
     {
         const auto String = reinterpret_cast<ULString>(StringHandle);
-        if (!String)
-            return nullptr;
 
-        const char* Data = ulStringGetData(String);
-        if (!Data || strlen(Data) == 0)
-            return Environment->NewStringUTF("");
-
-        try
-        {
-            // Convert Standard UTF-8 (Ultralight) to UTF-16 (Java)
-            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> Convert;
-            std::u16string UTF16String = Convert.from_bytes(Data);
-
-            // Pass the UTF-16 buffer directly to Java
-            // NewString takes a jchar* (16-bit) and the count of units
-            return Environment->NewString(reinterpret_cast<const jchar*>(UTF16String.data()), static_cast<jsize>(UTF16String.length()));
-        }
-        catch (const std::exception&)
-        {
-            // Fallback for conversion errors (though rare with valid UTF-8)
-            return Environment->NewStringUTF(Data);
-        }
+        return CJNIUtils::ToJavaString(Environment, String);
     }
 
     /*
