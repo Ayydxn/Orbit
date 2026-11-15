@@ -4,10 +4,12 @@ import me.ayydxn.orbit.natives.NativeBackendType;
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
 import me.ayydxn.orbit.natives.ffm.ultralight.FFMULConfigNatives;
+import me.ayydxn.orbit.natives.ffm.ultralight.FFMULPlatformNatives;
 import me.ayydxn.orbit.natives.ffm.ultralight.FFMULStringNatives;
 import me.ayydxn.orbit.natives.ffm.ultralight.FFMUltralightNatives;
 import me.ayydxn.orbit.natives.ffm.utils.FFMFunctions;
 import me.ayydxn.orbit.natives.ultralight.ULConfigNatives;
+import me.ayydxn.orbit.natives.ultralight.ULPlatformNatives;
 import me.ayydxn.orbit.natives.ultralight.ULStringNatives;
 import me.ayydxn.orbit.natives.ultralight.UltralightNatives;
 import org.jetbrains.annotations.NotNull;
@@ -51,4 +53,10 @@ public final class FFMNativeBackend implements OrbitNativeBackend
 	{
 		return new FFMULConfigNatives();
 	}
+
+    @Override
+    public @NotNull ULPlatformNatives ulPlatform()
+    {
+        return new FFMULPlatformNatives();
+    }
 }

@@ -80,6 +80,9 @@ repositories {
 }
 
 dependencies {
+    implementation("org.apache.logging.log4j:log4j-api:${rootProject.extra["log4j_version"]}")
+    implementation("org.apache.logging.log4j:log4j-core:${rootProject.extra["log4j_version"]}")
+
     compileOnly("org.jetbrains:annotations:${rootProject.extra["jetbrains_annotations_version"]}")
 
     /*--------------------*/

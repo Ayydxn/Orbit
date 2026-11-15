@@ -4,6 +4,7 @@ import me.ayydxn.orbit.natives.NativeBackendType;
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
 import me.ayydxn.orbit.natives.ultralight.ULConfigNatives;
+import me.ayydxn.orbit.natives.ultralight.ULPlatformNatives;
 import me.ayydxn.orbit.natives.ultralight.ULStringNatives;
 import me.ayydxn.orbit.natives.ultralight.UltralightNatives;
 import org.jetbrains.annotations.NotNull;
@@ -23,15 +24,17 @@ public final class RecordingNativeBackend implements OrbitNativeBackend
 	private final UltralightNatives ultralightNatives;
 	private final ULStringNatives ulStringNatives;
     private final ULConfigNatives ulConfigNatives;
+    private final ULPlatformNatives ulPlatformNatives;
 
 	public RecordingNativeBackend(OrbitNativeBackend delegate)
-	{
-		this.delegate = delegate;
+    {
+        this.delegate = delegate;
 
-		this.ultralightNatives = this.recorder.wrap(UltralightNatives.class, delegate.ultralight());
-		this.ulStringNatives = this.recorder.wrap(ULStringNatives.class, delegate.ulString());
+        this.ultralightNatives = this.recorder.wrap(UltralightNatives.class, delegate.ultralight());
+        this.ulStringNatives = this.recorder.wrap(ULStringNatives.class, delegate.ulString());
         this.ulConfigNatives = this.recorder.wrap(ULConfigNatives.class, delegate.ulConfig());
-	}
+        this.ulPlatformNatives = this.recorder.wrap(ULPlatformNatives.class, delegate.ulPlatform());
+    }
 
 	@Override
 	public void initialize() throws NativeBackendException
@@ -61,6 +64,12 @@ public final class RecordingNativeBackend implements OrbitNativeBackend
     public @NotNull ULConfigNatives ulConfig()
     {
         return this.ulConfigNatives;
+    }
+
+    @Override
+    public @NotNull ULPlatformNatives ulPlatform()
+    {
+        return this.ulPlatformNatives;
     }
 
     public Set<String> getUncoveredContractMethods()
