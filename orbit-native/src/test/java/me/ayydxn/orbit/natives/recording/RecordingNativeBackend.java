@@ -1,6 +1,5 @@
 package me.ayydxn.orbit.natives.recording;
 
-import me.ayydxn.orbit.natives.NativeBackendType;
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
 import me.ayydxn.orbit.natives.ultralight.ULConfigNatives;
@@ -40,12 +39,6 @@ public final class RecordingNativeBackend implements OrbitNativeBackend
 	public void initialize() throws NativeBackendException
 	{
 		this.delegate.initialize();
-	}
-
-	@Override
-	public @NotNull NativeBackendType getType()
-	{
-		return this.delegate.getType();
 	}
 
 	@Override

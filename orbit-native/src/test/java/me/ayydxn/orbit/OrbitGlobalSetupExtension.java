@@ -3,6 +3,7 @@ package me.ayydxn.orbit;
 import me.ayydxn.orbit.natives.NativeBackendManager;
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
+import me.ayydxn.orbit.natives.jni.JNINativeBackend;
 import me.ayydxn.orbit.natives.recording.RecordingNativeBackend;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -22,8 +23,6 @@ public class OrbitGlobalSetupExtension implements BeforeAllCallback
 
 	private static boolean wereLibrariesLoaded = false;
 
-	public static final String EXPECTED_BACKEND_PROPERTY = "orbit.test.expectedBackend";
-
 	@Override
 	public void beforeAll(@NonNull ExtensionContext extensionContext) throws NativeBackendException
 	{
@@ -40,21 +39,12 @@ public class OrbitGlobalSetupExtension implements BeforeAllCallback
 
 	private static void setup() throws NativeBackendException
 	{
-		OrbitNativeBackend orbitNativeBackend = NativeBackendManager.select();
-		String expectedBackend = System.getProperty(EXPECTED_BACKEND_PROPERTY);
-
-		if (expectedBackend != null && !expectedBackend.equalsIgnoreCase(orbitNativeBackend.getType().getName()))
-		{
-			throw new IllegalStateException(String.format("These unit tests were setup to run on the %s backend, but the %s backend was selected instead!",
-				expectedBackend, orbitNativeBackend.getType().getName()));
-		}
-
 		for (String ultralightLibrary : ULTRALIGHT_LIBRARIES_LOAD_ORDER)
 			System.loadLibrary(ultralightLibrary);
 
-		if (orbitNativeBackend.getType().usesJNIBridge())
-			System.loadLibrary(JNI_BRIDGE_LIBRARY_NAME);
+        System.loadLibrary(JNI_BRIDGE_LIBRARY_NAME);
 
+        OrbitNativeBackend orbitNativeBackend = new JNINativeBackend();
 		orbitNativeBackend.initialize();
 
 		NativeBackendManager.install(new RecordingNativeBackend(orbitNativeBackend));

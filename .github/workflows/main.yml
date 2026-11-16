@@ -61,19 +61,12 @@ jobs:
           SDK_PATH: ${{ steps.sdk.outputs.path }}
         run: ./gradlew :orbit-native:test -Pplatform=${{ matrix.platform }} -Pultralight_sdk_location="$SDK_PATH"
 
-      - name: Publish JNI Unit Tests Results
+      - name: Publish Unit Tests Results
         uses: mikepenz/action-junit-report@v6
         if: always()
         with:
-          check_name: "✅ Unit Tests (JNI)"
+          check_name: "✅ Unit Tests"
           report_paths: "orbit-native/build/test-results/test/TEST-*.xml"
-
-      - name: Publish FFM Unit Tests Results
-        uses: mikepenz/action-junit-report@v6
-        if: always()
-        with:
-          check_name: "✅ Unit Tests (FFM)"
-          report_paths: "orbit-native/build/test-results/testFFM/TEST-*.xml"
 
   build-mod:
     name: 📦 Build Mod

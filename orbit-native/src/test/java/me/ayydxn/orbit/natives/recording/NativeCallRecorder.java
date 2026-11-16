@@ -74,7 +74,7 @@ final class NativeCallRecorder
 		{
 			Throwable cause = exception.getCause();
 
-			// A method that couldn't run at all (unbound in FFM, or missing from the JNI registration table) hasn't been exercised, so it doesn't count as covered.
+			// A method that couldn't run at all (e.g., missing from a class' JNI registration table) hasn't been exercised, so it doesn't count as covered.
 			// Any other exception means the method really ran.
 			if (!(cause instanceof UnsupportedOperationException) && !(cause instanceof LinkageError))
 				this.invokedMethods.add(NativeCallRecorder.getSignature(method));

@@ -55,20 +55,15 @@ val nativeLibraryName = when (platform) {
 val nativeChecksumDirectory = layout.buildDirectory.dir("native-checksums/$platform").get().asFile
 val cmakeBuildDirectory = layout.buildDirectory.dir("cmake-build").get().asFile
 
-val ffmJavaVersion = 22
-
 // Multi-config generators like Visual Studio put the library in a per-configuration folder, single-config generators such as Makefiles don't.
 fun findBuiltNativeLibrary(): File? = listOf(
     File(cmakeBuildDirectory, "Release/$nativeLibraryName"),
     File(cmakeBuildDirectory, nativeLibraryName)
 ).firstOrNull { it.exists() }
 
-fun testLibraryPath(includeJNIBridge: Boolean): String
+fun testLibraryPath(): String
 {
     val ultralightBin = file("$ultralightSdkLocation/bin").absolutePath
-    if (!includeJNIBridge)
-        return ultralightBin
-
     val nativeLibraryBin = findBuiltNativeLibrary()?.parentFile?.absolutePath
         ?: throw GradleException("Unit tests unavailable because $nativeLibraryName was not found in $cmakeBuildDirectory (checked Release/ and the build root).")
 
@@ -80,9 +75,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.apache.logging.log4j:log4j-api:${rootProject.extra["log4j_version"]}")
-    implementation("org.apache.logging.log4j:log4j-core:${rootProject.extra["log4j_version"]}")
-
     compileOnly("org.jetbrains:annotations:${rootProject.extra["jetbrains_annotations_version"]}")
 
     /*--------------------*/
@@ -103,13 +95,6 @@ java {
 }
 
 sourceSets {
-    create("ffm") {
-        java.srcDirs("src/ffm/java")
-
-        compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
-        runtimeClasspath += sourceSets.main.get().output + sourceSets.main.get().runtimeClasspath
-    }
-
     test {
         compileClasspath += sourceSets.main.get().compileClasspath
     }
@@ -215,28 +200,6 @@ val stageJNIBridgeLibrary = tasks.register<Sync>("stageJNIBridgeLibrary") {
     logger.quiet("[orbit-native] Staged native library to ${layout.buildDirectory.dir("generated/orbit-natives").get().asFile.absolutePath}")
 }
 
-val testFFM = tasks.register<Test>("testFFM") {
-    group = "verification"
-    description = "Runs the unit tests against the FFM backend on Java $ffmJavaVersion"
-
-    // The jar is used instead of the class directories, so the tests see the same META-INF/versions/$ffmJavaVersion layout the mod ships with.
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = files(tasks.jar.flatMap { it.archiveFile }) + sourceSets.test.get().runtimeClasspath - sourceSets.main.get().output
-
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(ffmJavaVersion)
-        vendor = JvmVendorSpec.AZUL
-    }
-
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
-
-    systemProperty("orbit.test.expectedBackend", "FFM")
-
-    doFirst {
-        systemProperty("java.library.path", testLibraryPath(false))
-    }
-}
-
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
@@ -259,37 +222,15 @@ tasks.named<JavaCompile>("compileJava") {
     options.release = 17
 }
 
-tasks.named<JavaCompile>(sourceSets.getByName("ffm").compileJavaTaskName) {
-    options.release = ffmJavaVersion
-
-    javaCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(ffmJavaVersion)
-        vendor = JvmVendorSpec.AZUL
-    }
-}
-
-tasks.jar {
-    into("META-INF/versions/$ffmJavaVersion") {
-        from(sourceSets.getByName("ffm").output)
-    }
-
-    manifest {
-        attributes("Multi-Release" to true)
-    }
-}
-
 tasks.processResources {
     from(stageJNIBridgeLibrary)
 }
 
 tasks.test {
     dependsOn(compileNative)
-    finalizedBy(testFFM)
-
-    systemProperty("orbit.test.expectedBackend", "JNI")
 
     doFirst {
-        systemProperty("java.library.path", testLibraryPath(true))
+        systemProperty("java.library.path", testLibraryPath())
     }
 }
 

@@ -1,6 +1,7 @@
 package me.ayydxn.orbit.natives;
 
 import me.ayydxn.orbit.natives.recording.RecordingNativeBackend;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,7 @@ class NativesCoverageTest
 	private static final String ENFORCE_PROPERTY = "orbit.test.enforceContractCoverage";
 
 	@Test
+    @DisplayName("Every Contract Methods Was Exercised On This Backend")
 	void everyContractMethodWasExercisedOnThisBackend()
 	{
 		assumeTrue(Boolean.getBoolean(ENFORCE_PROPERTY), "Contract coverage is only enforced when the whole suite runs (-D" + ENFORCE_PROPERTY + "=true)");
@@ -24,7 +26,7 @@ class NativesCoverageTest
 			"The tests weren't set up through OrbitGlobalSetupExtension");
 
 		assertTrue(recordingBackend.getUncoveredContractMethods().isEmpty(),
-			() -> "These contract methods were never successfully called on the " + recordingBackend.getType().getName() + " backend:\n" +
+			() -> "These contract methods were never successfully called: " +
 				String.join("\n", recordingBackend.getUncoveredContractMethods()));
 	}
 }

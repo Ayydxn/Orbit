@@ -5,6 +5,7 @@ import me.ayydxn.orbit.OrbitMod;
 import me.ayydxn.orbit.natives.NativeBackendManager;
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
 import me.ayydxn.orbit.natives.exceptions.NativeBackendException;
+import me.ayydxn.orbit.natives.jni.JNINativeBackend;
 import me.ayydxn.orbit.platform.PlatformResourceLocator;
 import me.ayydxn.orbit.utils.ultralight.UltralightLibraryDownloader;
 import org.jetbrains.annotations.NotNull;
@@ -88,42 +89,28 @@ public final class NativeLibraryLoader
 	private static NativeLibraryLoadStatus loadLibraries(LibraryLoadContext loadContext) throws NativeLibraryLoadException
 	{
 		OrbitNativePlatform nativePlatform = NativeLibraryLoader.detectPlatform();
-		OrbitNativeBackend nativeBackend = NativeLibraryLoader.selectBackend();
-		boolean usesJNIBridge = nativeBackend.getType().usesJNIBridge();
-
-		OrbitMod.LOGGER.info("Selected Native Backend: {}", nativeBackend.getType().getName());
+		OrbitNativeBackend nativeBackend = new JNINativeBackend();
 
 		NativeLibraryLoader.ensureUltralightLibrariesPresent(loadContext.librariesPath, nativePlatform);
 
 		// Everything that can fail verification happens before any native code is loaded.
-		boolean wasJNIBridgeLibraryVerified = false;
-		Path jniBridgeLibraryPath = null;
-
-		if (usesJNIBridge)
-		{
-			byte[] jniBridgeLibraryBytes = NativeLibraryLoader.readEmbeddedJNIBridgeLibrary(nativePlatform);
-
-			wasJNIBridgeLibraryVerified = NativeLibraryLoader.verifyJNIBridgeLibrary(jniBridgeLibraryBytes, nativePlatform);
-			jniBridgeLibraryPath = NativeLibraryLoader.writeJNIBridgeLibrary(loadContext.librariesPath, nativePlatform, jniBridgeLibraryBytes);
-		}
+        byte[] jniBridgeLibraryBytes = NativeLibraryLoader.readEmbeddedJNIBridgeLibrary(nativePlatform);
+        boolean wasJNIBridgeLibraryVerified = NativeLibraryLoader.verifyJNIBridgeLibrary(jniBridgeLibraryBytes, nativePlatform);
+		Path jniBridgeLibraryPath = NativeLibraryLoader.writeJNIBridgeLibrary(loadContext.librariesPath, nativePlatform, jniBridgeLibraryBytes);
 
 		for (String ultralightLibrary : nativePlatform.getUltralightLibraryFiles())
 			NativeLibraryLoader.loadLibrary(loadContext.librariesPath.resolve(ultralightLibrary));
 
 		OrbitMod.LOGGER.info("Successfully loaded Ultralight libraries!");
 
-		if (jniBridgeLibraryPath != null)
-		{
-			NativeLibraryLoader.loadLibrary(jniBridgeLibraryPath);
+        NativeLibraryLoader.loadLibrary(jniBridgeLibraryPath);
 
-			OrbitMod.LOGGER.info("Successfully loaded JNI bridge library!");
-		}
+        OrbitMod.LOGGER.info("Successfully loaded JNI bridge library!");
 
 		NativeLibraryLoader.initializeBackend(nativeBackend);
 		NativeBackendManager.install(nativeBackend);
 
-		// Only the JNI backend has a bridge that can go unverified, so the FFM backend always counts as fully loaded.
-		return usesJNIBridge && !wasJNIBridgeLibraryVerified ? NativeLibraryLoadStatus.loadedUnverified(nativeBackend.getType()) : NativeLibraryLoadStatus.loaded(nativeBackend.getType());
+		return wasJNIBridgeLibraryVerified ? NativeLibraryLoadStatus.loaded() : NativeLibraryLoadStatus.loadedUnverified();
 	}
 
 	private static OrbitNativePlatform detectPlatform() throws NativeLibraryLoadException
@@ -138,18 +125,6 @@ public final class NativeLibraryLoader
 		}
 	}
 
-	private static OrbitNativeBackend selectBackend() throws NativeLibraryLoadException
-	{
-		try
-		{
-			return NativeBackendManager.select();
-		}
-		catch (NativeBackendException exception)
-		{
-			throw new NativeLibraryLoadException(NativeLibraryLoadStatus.FailureReason.NATIVE_BACKEND_UNAVAILABLE, exception.getMessage(), exception);
-		}
-	}
-
 	private static void initializeBackend(OrbitNativeBackend nativeBackend) throws NativeLibraryLoadException
 	{
 		try
@@ -158,7 +133,7 @@ public final class NativeLibraryLoader
 		}
 		catch (NativeBackendException exception)
 		{
-			throw new NativeLibraryLoadException(NativeLibraryLoadStatus.FailureReason.NATIVE_LOAD_FAILED, "Failed to initialize the " + nativeBackend.getType().getName() + " native backend", exception);
+			throw new NativeLibraryLoadException(NativeLibraryLoadStatus.FailureReason.NATIVE_LOAD_FAILED, "Failed to initialize the JNI native backend!", exception);
 		}
 	}
 
