@@ -75,6 +75,7 @@ repositories {
 }
 
 dependencies {
+    compileOnly("com.ibm.icu:icu4j:${rootProject.property("icu4j_version").toString()}")
     compileOnly("org.jetbrains:annotations:${rootProject.extra["jetbrains_annotations_version"]}")
 
     /*--------------------*/

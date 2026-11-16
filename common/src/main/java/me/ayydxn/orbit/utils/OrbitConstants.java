@@ -11,6 +11,8 @@ public final class OrbitConstants
 	}
 
     public static final Path ORBIT_DIRECTORY = Platform.getGameFolder().resolve("orbit");
+    public static final Path ORBIT_RESOURCES_DIRECTORY = ORBIT_DIRECTORY.resolve("resources");
+    public static final Path ORBIT_CACHE_DIRECTORY = ORBIT_DIRECTORY.resolve("cache");
 
 	public static final String ULTRALIGHT_VERSION = "2.0.0-beta.2";
 }
