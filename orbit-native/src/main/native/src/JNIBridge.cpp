@@ -2,6 +2,7 @@
 #include "core/jni/JNIThread.h"
 #include "ultralight/ULConfig.h"
 #include "ultralight/ULPlatform.h"
+#include "ultralight/ULRenderer.h"
 #include "ultralight/ULString.h"
 #include "ultralight/Ultralight.h"
 
@@ -27,6 +28,7 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
     GNativeInterfaceRegistry->Add(std::make_shared<CULString>());
     GNativeInterfaceRegistry->Add(std::make_shared<CULConfig>());
     GNativeInterfaceRegistry->Add(std::make_shared<CULPlatform>());
+    GNativeInterfaceRegistry->Add(std::make_shared<CULRenderer>());
 
     GNativeInterfaceRegistry->RegisterInterfaces(Environment);
 

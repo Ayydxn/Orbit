@@ -1,14 +1,8 @@
 package me.ayydxn.orbit.natives.jni;
 
 import me.ayydxn.orbit.natives.OrbitNativeBackend;
-import me.ayydxn.orbit.natives.jni.ultralight.JNIULConfigNatives;
-import me.ayydxn.orbit.natives.jni.ultralight.JNIULPlatformNatives;
-import me.ayydxn.orbit.natives.jni.ultralight.JNIULStringNatives;
-import me.ayydxn.orbit.natives.jni.ultralight.JNIUltralightNatives;
-import me.ayydxn.orbit.natives.ultralight.ULConfigNatives;
-import me.ayydxn.orbit.natives.ultralight.ULPlatformNatives;
-import me.ayydxn.orbit.natives.ultralight.ULStringNatives;
-import me.ayydxn.orbit.natives.ultralight.UltralightNatives;
+import me.ayydxn.orbit.natives.jni.ultralight.*;
+import me.ayydxn.orbit.natives.ultralight.*;
 import org.jetbrains.annotations.NotNull;
 
 public final class JNINativeBackend implements OrbitNativeBackend
@@ -35,6 +29,12 @@ public final class JNINativeBackend implements OrbitNativeBackend
 	{
 		return new JNIULConfigNatives();
 	}
+
+    @Override
+    public @NotNull ULRendererNatives ulRenderer()
+    {
+        return new JNIULRendererNatives();
+    }
 
     @Override
     public @NotNull ULPlatformNatives ulPlatform()

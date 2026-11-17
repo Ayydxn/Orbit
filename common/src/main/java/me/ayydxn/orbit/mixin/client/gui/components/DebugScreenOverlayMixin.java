@@ -2,8 +2,8 @@ package me.ayydxn.orbit.mixin.client.gui.components;
 
 import com.google.common.collect.Lists;
 import me.ayydxn.orbit.OrbitMod;
-import me.ayydxn.orbit.natives.NativeBackendManager;
 import me.ayydxn.orbit.ultralight.Ultralight;
+import me.ayydxn.orbit.utils.ultralight.UltralightMemoryUsageInfo;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +22,8 @@ public class DebugScreenOverlayMixin
 		lines.add("Orbit Version: %s".formatted(OrbitMod.getInstance().getVersion()));
 		lines.add("Ultralight Version: %s".formatted(Ultralight.versionString()));
 		lines.add("WebKit Version: %s".formatted(Ultralight.webkitVersionString()));
+        lines.add("");
+        lines.addAll(UltralightMemoryUsageInfo.getDebugMenuLines(() -> OrbitMod.getInstance().getEngine().getRendererMemoryUsage()));
 
 		return lines;
 	}

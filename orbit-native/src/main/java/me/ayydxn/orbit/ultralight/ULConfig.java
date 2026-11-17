@@ -3,6 +3,7 @@ package me.ayydxn.orbit.ultralight;
 import me.ayydxn.orbit.natives.NativeBackendManager;
 import me.ayydxn.orbit.natives.ultralight.ULConfigNatives;
 import me.ayydxn.orbit.ultralight.config.ULEffectQuality;
+import org.jetbrains.annotations.ApiStatus;
 
 public final class ULConfig implements AutoCloseable
 {
@@ -68,5 +69,11 @@ public final class ULConfig implements AutoCloseable
     public void setDeveloperMode(boolean enableDeveloperMode)
     {
         NATIVES.setDeveloperMode(this.handle, enableDeveloperMode);
+    }
+
+    @ApiStatus.Internal
+    public long getHandle()
+    {
+        return this.handle;
     }
 }

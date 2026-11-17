@@ -10,6 +10,13 @@ import net.fabricmc.api.Environment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
 @Environment(EnvType.CLIENT)
 public class OrbitMod
 {
@@ -24,10 +31,11 @@ public class OrbitMod
     private OrbitMod()
     {
         this.orbitEngine = new OrbitEngine();
-
 		this.version = Platform.getMod(MOD_ID).getVersion();
 
         NativeLibraryLoader.startLoading(OrbitConstants.ORBIT_DIRECTORY);
+
+        this.extractUltralightResources();
 
         ClientLifecycleEvent.CLIENT_STARTED.register(client -> this.orbitEngine.initialize());
 
@@ -67,4 +75,36 @@ public class OrbitMod
 	{
 		return this.version;
 	}
+
+    private void extractUltralightResources()
+    {
+        // Ultralight can't load cacert.pem and icudt67l.dat from the mod's resources folder.
+        // So, we have to copy them to somewhere on the disk and then point Ultralight to that.
+        try
+        {
+            Files.createDirectories(OrbitConstants.ORBIT_RESOURCES_DIRECTORY);
+        }
+        catch (IOException exception)
+        {
+            LOGGER.error("Failed to create Ultralight resources folder!", exception);
+        }
+
+        for (String targetResourceFile : new String[] { "cacert.pem", "icudt67l.dat" })
+        {
+            String resourceFilePath = String.format("/assets/%s/ultralight/%s", MOD_ID, targetResourceFile);
+            Path destinationFile = OrbitConstants.ORBIT_RESOURCES_DIRECTORY.resolve(targetResourceFile);
+
+            try (InputStream inputStream = OrbitMod.class.getResourceAsStream(resourceFilePath))
+            {
+                if (inputStream == null)
+                    throw new FileNotFoundException(String.format("Ultralight resource file '%s' was not found!",  resourceFilePath));
+
+                Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+            catch (IOException exception)
+            {
+                LOGGER.error("Failed to copy Ultralight resource file!", exception);
+            }
+        }
+    }
 }
