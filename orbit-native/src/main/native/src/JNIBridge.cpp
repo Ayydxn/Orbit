@@ -1,10 +1,7 @@
+#include "GeneratedNativeInterfaces.h"
 #include "core/NativeInterfaceRegistry.h"
 #include "core/jni/JNIThread.h"
-#include "ultralight/ULConfig.h"
 #include "ultralight/ULPlatform.h"
-#include "ultralight/ULRenderer.h"
-#include "ultralight/ULString.h"
-#include "ultralight/Ultralight.h"
 
 #include <jni.h>
 
@@ -24,11 +21,9 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* VirtualMachine, void*)
     CJNIThread::Initialize(VirtualMachine);
 
     GNativeInterfaceRegistry = std::make_unique<CNativeInterfaceRegistry>();
-    GNativeInterfaceRegistry->Add(std::make_shared<CUltralight>());
-    GNativeInterfaceRegistry->Add(std::make_shared<CULString>());
-    GNativeInterfaceRegistry->Add(std::make_shared<CULConfig>());
+    AddGeneratedNativeInterfaces(*GNativeInterfaceRegistry);
+
     GNativeInterfaceRegistry->Add(std::make_shared<CULPlatform>());
-    GNativeInterfaceRegistry->Add(std::make_shared<CULRenderer>());
 
     GNativeInterfaceRegistry->RegisterInterfaces(Environment);
 

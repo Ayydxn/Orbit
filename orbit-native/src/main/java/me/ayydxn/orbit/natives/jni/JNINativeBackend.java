@@ -12,13 +12,13 @@ public final class JNINativeBackend implements OrbitNativeBackend
 	{
 	}
 
-	@Override
-	public @NotNull UltralightNatives ultralight()
-	{
-		return new JNIUltralightNatives();
-	}
+    @Override
+    public @NotNull UltralightNatives ultralight()
+    {
+        return new JNIUltralightNatives();
+    }
 
-	@Override
+    @Override
 	public @NotNull ULStringNatives ulString()
 	{
 		return new JNIULStringNatives();

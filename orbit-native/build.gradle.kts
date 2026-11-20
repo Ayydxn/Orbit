@@ -55,6 +55,20 @@ val nativeLibraryName = when (platform) {
 val nativeChecksumDirectory = layout.buildDirectory.dir("native-checksums/$platform").get().asFile
 val cmakeBuildDirectory = layout.buildDirectory.dir("cmake-build").get().asFile
 
+val contractPackage = "me.ayydxn.orbit.natives.ultralight"
+val contractDirectory = file("src/main/java/${contractPackage.replace('.', '/')}")
+
+// Only contracts that opt in are generated, so hand-written ones like are left alone.
+val contractClassNames: List<String> = contractDirectory.listFiles { file -> file.extension == "java" }
+    .orEmpty()
+    .filter { it.readText().contains("@NativeContract") }
+    .map { "$contractPackage.${it.nameWithoutExtension}" }
+    .sorted()
+
+val generatedBindingsDirectory = layout.buildDirectory.dir("generated/bindings")
+val generatedJavaDirectory = generatedBindingsDirectory.map { it.dir("java") }
+val generatedNativeDirectory = generatedBindingsDirectory.map { it.dir("native") }
+
 // Multi-config generators like Visual Studio put the library in a per-configuration folder, single-config generators such as Makefiles don't.
 fun findBuiltNativeLibrary(): File? = listOf(
     File(cmakeBuildDirectory, "Release/$nativeLibraryName"),
@@ -74,9 +88,31 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    create("generator") {
+        java.srcDir("src/main/java")
+        java.srcDir("src/generator/java")
+
+        java.include("me/ayydxn/orbit/natives/annotations/**", "me/ayydxn/orbit/natives/generator/**")
+
+        contractClassNames.forEach {
+            java.include("${it.replace('.', '/')}.java")
+        }
+    }
+
+    main {
+        java.srcDir(generatedJavaDirectory)
+    }
+
+    test {
+        compileClasspath += sourceSets.main.get().compileClasspath
+    }
+}
+
 dependencies {
     compileOnly("com.ibm.icu:icu4j:${rootProject.property("icu4j_version").toString()}")
     compileOnly("org.jetbrains:annotations:${rootProject.extra["jetbrains_annotations_version"]}")
+    compileOnly(sourceSets.named("generator").get().output)
 
     /*--------------------*/
     /* -- Unit Testing -- */
@@ -95,15 +131,35 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-sourceSets {
-    test {
-        compileClasspath += sourceSets.main.get().compileClasspath
+val generateNativeBindings = tasks.register<JavaExec>("generateBindings") {
+    group = "native"
+    description = "Generates the JNI Java classes and C++ glue from the @NativeContract interfaces."
+
+    classpath = sourceSets.named("generator").get().runtimeClasspath
+    mainClass = "me.ayydxn.orbit.natives.generator.NativeBindingGenerator"
+
+    outputs.dir(generatedJavaDirectory)
+    outputs.dir(generatedNativeDirectory)
+
+    args(
+        listOf(
+            generatedJavaDirectory.get().asFile.absolutePath,
+            generatedNativeDirectory.get().asFile.absolutePath
+        ) + contractClassNames
+    )
+
+    // A contract that was removed or renamed shouldn't leave its old generated files behind.
+    doFirst {
+        generatedJavaDirectory.get().asFile.deleteRecursively()
+        generatedNativeDirectory.get().asFile.deleteRecursively()
     }
 }
 
 val configureCMake = tasks.register("configureCMake", Exec::class) {
     group = "native"
     description = "Runs CMake to configure the project files for our native build"
+
+    dependsOn(generateNativeBindings)
 
     onlyIf { !usePrebuiltNatives && ultralightSdkLocation.isNotBlank() }
 
@@ -115,6 +171,7 @@ val configureCMake = tasks.register("configureCMake", Exec::class) {
         "cmake",
         file("src/main/native").absolutePath,
         "-DULTRALIGHT_SDK=${ultralightSdkLocation}",
+        "-DORBIT_GENERATED_DIR=${generatedNativeDirectory.get().asFile.absolutePath}",
         "-DCMAKE_BUILD_TYPE=Release",
         "-G", if (isWindows) "Visual Studio 18 2026" else "Unix Makefiles"
     )
@@ -147,22 +204,6 @@ val compileNative = tasks.register("compileNative", Exec::class) {
 
         logger.quiet("[orbit-native] Wrote native library checksum to ${checksumFile.absolutePath}")
     }
-}
-
-val generateJNIHeaders = tasks.register<JavaCompile>("generateJNIHeaders") {
-    group = "native"
-    description = "Generates JNI headers for reference when writing the JNI bridge functions. They aren't needed for actually compiling the JNI bridge."
-
-    source = sourceSets.main.get().java
-    classpath = sourceSets.main.get().compileClasspath
-    destinationDirectory.set(layout.buildDirectory.dir("jni-classes"))
-
-    options.compilerArgs.addAll(
-        listOf(
-            "-h", layout.buildDirectory.dir("jni-headers").get().asFile.absolutePath,
-            "-implicit:class"  // still emit .class files for javac cache
-        )
-    )
 }
 
 val stageJNIBridgeLibrary = tasks.register<Sync>("stageJNIBridgeLibrary") {
@@ -201,6 +242,10 @@ val stageJNIBridgeLibrary = tasks.register<Sync>("stageJNIBridgeLibrary") {
     logger.quiet("[orbit-native] Staged native library to ${layout.buildDirectory.dir("generated/orbit-natives").get().asFile.absolutePath}")
 }
 
+listOf("compileJava", "sourcesJar", "javadoc").forEach { taskName ->
+    tasks.named(taskName) { dependsOn(generateNativeBindings) }
+}
+
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
@@ -221,6 +266,11 @@ tasks.withType<Test>().configureEach {
 
 tasks.named<JavaCompile>("compileJava") {
     options.release = 17
+}
+
+tasks.named<JavaCompile>(sourceSets.getByName("generator").compileJavaTaskName) {
+    options.release = 17
+    options.compilerArgs.add("-parameters")
 }
 
 tasks.processResources {

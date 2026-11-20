@@ -24,11 +24,20 @@ set(UL_LIB_DIR "${ULTRALIGHT_SDK}/lib")
 
 # ── Sources ──────────────────────────────────────────────────────────────────
 file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.h")
+file(GLOB_RECURSE GENERATED_SOURCES "${ORBIT_GENERATED_DIR}/*.cpp" "${ORBIT_GENERATED_DIR}/*.h")
+
+if(NOT GENERATED_SOURCES)
+    message(FATAL_ERROR "No generated sources found in ${ORBIT_GENERATED_DIR}")
+endif()
+
+message(STATUS "Generated sources: ${GENERATED_SOURCES}")
+list(APPEND SOURCES ${GENERATED_SOURCES})
 
 add_library(OrbitJNIBridge SHARED ${SOURCES})
 
 target_include_directories(OrbitJNIBridge PRIVATE
         "${CMAKE_SOURCE_DIR}/src"
+        "${ORBIT_GENERATED_DIR}"
         ${JNI_INCLUDE_DIRS}
         ${UL_INCLUDE}
 )

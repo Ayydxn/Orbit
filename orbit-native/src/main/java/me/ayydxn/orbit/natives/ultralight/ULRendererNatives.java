@@ -1,16 +1,27 @@
 package me.ayydxn.orbit.natives.ultralight;
 
+import me.ayydxn.orbit.natives.generator.annotations.*;
+
+@NativeContract(headers = {"Ultralight/CAPI/CAPI_Renderer.h", "Ultralight/CAPI/CAPI_String.h"})
 public interface ULRendererNatives
 {
-    long create(long configHandle);
+    @NativePointer("ULRenderer")
+    @NativeFunction("ulCreateRenderer")
+    long create(@NativePointer("ULConfig") long configHandle);
 
-    void destroy(long handle);
+    @NativeFunction("ulDestroyRenderer")
+    void destroy(@NativePointer("ULRenderer") long handle);
 
-    void update(long handle);
+    @NativeFunction("ulUpdate")
+    void update(@NativePointer("ULRenderer") long handle);
 
-    void refreshDisplay(long handle, int displayID);
+    @NativeFunction("ulRefreshDisplay")
+    void refreshDisplay(@NativePointer("ULRenderer") long handle, @NativeType("unsigned int") int displayID);
 
-    void render(long handle);
+    @NativeFunction("ulRender")
+    void render(@NativePointer("ULRenderer") long handle);
 
-    String getMemoryUsage(long handle);
+    @UltralightString(owned = true)
+    @NativeFunction("ulGetMemoryUsage")
+    String getMemoryUsage(@NativePointer("ULRenderer") long handle);
 }

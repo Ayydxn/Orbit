@@ -1,20 +1,35 @@
 package me.ayydxn.orbit.natives.ultralight;
 
+import me.ayydxn.orbit.natives.generator.annotations.NativeContract;
+import me.ayydxn.orbit.natives.generator.annotations.NativeFunction;
+import me.ayydxn.orbit.natives.generator.annotations.NativePointer;
+import me.ayydxn.orbit.natives.generator.annotations.NativeType;
+
+@NativeContract(headers = {"Ultralight/CAPI/CAPI_Config.h"})
 public interface ULConfigNatives
 {
+    @NativePointer("ULConfig")
+    @NativeFunction("ulCreateConfig")
 	long create();
 
-	void destroy(long handle);
+    @NativeFunction("ulDestroyConfig")
+	void destroy(@NativePointer("ULConfig") long handle);
 
-	void setCachePath(long handle, long cachePathULString);
+    @NativeFunction("ulConfigSetCachePath")
+	void setCachePath(@NativePointer("ULConfig") long handle, @NativePointer("ULString") long cachePathULString);
 
-	void setResourcePathPrefix(long handle, long resourcePathPrefixULString);
+    @NativeFunction("ulConfigSetResourcePathPrefix")
+	void setResourcePathPrefix(@NativePointer("ULConfig") long handle, @NativePointer("ULString") long resourcePathPrefixULString);
 
-	void setBitmapAlignment(long handle, int bitmapRowAlignment);
+    @NativeFunction("ulConfigSetBitmapAlignment")
+	void setBitmapAlignment(@NativePointer("ULConfig") long handle, int bitmapRowAlignment);
 
-    void setEffectQuality(long handle, int effectQualityNativeValue);
+    @NativeFunction("ulConfigSetEffectQuality")
+    void setEffectQuality(@NativePointer("ULConfig") long handle, @NativeType("ULEffectQuality") int effectQualityNativeValue);
 
-    void setUserStylesheet(long handle, long userStylesheetULString);
+    @NativeFunction("ulConfigSetUserStylesheet")
+    void setUserStylesheet(@NativePointer("ULConfig") long handle, @NativePointer("ULString") long userStylesheetULString);
 
-    void setDeveloperMode(long handle, boolean enableDeveloperMode);
+    @NativeFunction("ulConfigSetDeveloperMode")
+    void setDeveloperMode(@NativePointer("ULConfig") long handle, boolean enableDeveloperMode);
 }
